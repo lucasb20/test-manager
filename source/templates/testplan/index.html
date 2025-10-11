@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Plans{% endblock %}
+
+{% block content %}
+<h1>Test Plans</h1>
+
+<a href="{{ url_for('project.select', next=url_for('testplan.index')) }}">Select Project</a> |
+<a href="{{ url_for('testplan.create') }}">Create New Test Plan</a>
+
+<ul>
+    {% for testplan in testplans %}
+    <li><a href="{{ url_for('testplan.detail', testplan_id=testplan.id) }}">{{ testplan.name }}</a></li>
+    {% else %}
+    <li>No test plans available.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

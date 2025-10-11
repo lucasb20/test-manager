@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Test Execution Summary{% endblock %}
+
+{% block content %}
+<h1>Test Execution Summary</h1>
+<p>Total Tests: {{ total_tests }}</p>
+<p>Passed Tests: {{ passed_tests }}</p>
+<p>Failed Tests: {{ failed_tests }}</p>
+<p>Skipped Tests: {{ skipped_tests }}</p>
+
+<table>
+    <tr>
+        <th>Test Case ID</th>
+        <th>Result</th>
+        <th>Executed By</th>
+        <th>Executed At</th>
+        <th>Notes</th>
+    </tr>
+    {% for result in results %}
+    <tr>
+        <td>{{ result.test_case_id }}</td>
+        <td>{{ result.result }}</td>
+        <td>{{ result.executed_by }}</td>
+        <td>{{ result.executed_at }}</td>
+        <td>{{ result.notes }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

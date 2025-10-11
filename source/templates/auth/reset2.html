@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block header %}
+  <h1>{% block title %}Reset Password{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="new_password">New Password</label>
+    <input type="password" name="new_password" placeholder="New Password" required>
+    <label for="confirm_password">Confirm Password</label>
+    <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+    <button type="submit">Reset Password</button>
+  </form>
+  <a href="{{ url_for('auth.login') }}">Back to Login</a>
+{% endblock %}

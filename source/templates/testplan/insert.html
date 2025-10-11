@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Plan{% endblock %}
+
+{% block content %}
+<h1>Insert Test Plan</h1>
+
+<form method="post">
+    {% for testcase in testcases %}
+    <div>
+        <input type="checkbox" name="testcase_ids" value="{{ testcase.id }}">
+        {{ testcase.title }}
+    </div>
+    {% else %}
+    <p>No test cases available.</p>
+    {% endfor %}
+    <button type="submit">Submit</button>
+</form>
+
+<a href="{{ url_for('testcase.index') }}">Create Test Cases</a> |
+<a href="{{ url_for('testplan.index') }}">Back to List</a>
+{% endblock %}

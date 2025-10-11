@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Plans{% endblock %}
+
+{% block content %}
+<h1>Test Plan Edit</h1>
+
+<form method="post">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" value="{{ testplan.name }}">
+    <label for="description">Description</label>
+    <textarea name="description" id="description">{{ testplan.description }}</textarea>
+    <label for="milestone">Milestone</label>
+    <input type="text" name="milestone" id="milestone" value="{{ testplan.milestone }}">
+    <label for="platform">Platform</label>
+    <input type="text" name="platform" id="platform" value="{{ testplan.platform }}">
+    <button type="submit">Save</button>
+</form>
+
+<a href="{{ url_for('testplan.detail', testplan_id=testplan.id) }}">Cancel</a>
+{% endblock %}

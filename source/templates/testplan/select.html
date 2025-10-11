@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Plans{% endblock %}
+
+{% block content %}
+<h1>Test Plans</h1>
+<ul>
+    {% for testcase in testcases %}
+    <li>{{ testcase.id }} - {{ testcase.title }} <form action="{{ url_for('testplan.remove', testplancase_id=testcase.id) }}" method="post"><button type="submit">Remove</button></form></li>
+    {% else %}
+    <li>No test cases available.</li>
+    {% endfor %}
+</ul>
+
+<a href="{{ url_for('testplan.insert', testplan_id=request.view_args['testplan_id']) }}">Insert Test Case</a> |
+<a href="{{ url_for('testplan.index') }}">Back to List</a>
+{% endblock %}

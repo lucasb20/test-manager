@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Test Executions{% endblock %}
+
+{% block content %}
+<h1>Test Executions for Test Plan {{ testplan_id }}</h1>
+
+{% if testexecs %}
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Created At</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for testexec in testexecs %}
+        <tr>
+            <td>{{ testexec.id }}</td>
+            <td>{{ testexec.created_at }}</td>
+            <td>{{ testexec.status }}</td>
+            <td>
+                <a href="{{ url_for('testexec.run_case', testexec_id=testexec.id, index=0) }}">View Details</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No test executions found for this test plan.</p>
+{% endif %}
+
+<a href="{{ url_for('testexec.create', testplan_id=testplan_id) }}">Create New Test Execution</a>
+
+{% endblock %}
