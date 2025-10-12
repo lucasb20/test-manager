@@ -70,3 +70,11 @@ def delete(project_id):
     db.session.delete(project)
     db.session.commit()
     return redirect(url_for('project.index'))
+
+@bp.before_app_request
+def load_project():
+    project_id = session.get('project_id')
+    if project_id is None:
+        g.project = None
+    else:
+        g.project = db.one_or_404(db.select(Project).filter_by(id=project_id))

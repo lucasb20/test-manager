@@ -22,7 +22,7 @@ class User(db.Model):
 class Project(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(unique=True)
-    description: Mapped[str]
+    description: Mapped[str | None] = mapped_column(default=None)
     manager_id: Mapped[int] = mapped_column(db.ForeignKey('user.id'))
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
@@ -62,7 +62,7 @@ class RequirementTestCase(db.Model):
 class TestPlan(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
-    description: Mapped[str]
+    description: Mapped[str | None] = mapped_column(default=None)
     project_id: Mapped[int] = mapped_column(db.ForeignKey('project.id'))
     platform: Mapped[str]
     milestone: Mapped[str]

@@ -5,13 +5,14 @@
 {% block content %}
 <h1>Test Case</h1>
 <form method="post">
+    <label for="title">Title:</label>
     <input type="text" name="title" placeholder="Title" required>
     <span><strong>Project:</strong> {{ g.project.name }}</span>
-    <label for="preconditions">Preconditions</label>
+    <label for="preconditions">Preconditions:</label>
     <input type="text" name="preconditions" placeholder="Preconditions" required>
-    <label for="steps">Steps</label>
+    <label for="steps">Steps:</label>
     <textarea name="steps" placeholder="Steps" required></textarea>
-    <label for="expected_result">Expected Result</label>
+    <label for="expected_result">Expected Result:</label>
     <input type="text" name="expected_result" id="expected_result" placeholder="Expected Result" required>
     <button type="submit">Create Test Case</button>
 </form>

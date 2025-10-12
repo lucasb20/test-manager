@@ -8,6 +8,7 @@
 <a href="{{ url_for('project.select', next=url_for('testcase.index')) }}">Select Project</a> |
 <a href="{{ url_for('testcase.create') }}">Create New Test Case</a>
 
+{% if testcases %}
 <table>
     <thead>
         <tr>
@@ -34,4 +35,7 @@
         {% endfor %}
     </tbody>
 </table>
+{% else %}
+<p>No test cases found.</p>
+{% endif %}
 {% endblock %}

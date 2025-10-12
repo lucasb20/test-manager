@@ -12,7 +12,7 @@ def index():
         return redirect(url_for('project.select', next=url_for('testcase.index')))
     testcases = db.session.execute(
         db.select(TestCase).filter_by(project_id=g.project.id)
-    ).scalars()
+    ).scalars().all()
     return render_template('testcase/index.html', testcases=testcases)
 
 @bp.route('/<int:testcase_id>')
