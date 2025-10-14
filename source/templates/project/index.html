@@ -3,11 +3,11 @@
 {% block title %}Projects{% endblock %}
 
 {% block content %}
-<h1>Projects</h1>
-<a href="{{ url_for('project.create') }}">New Project</a>
-<ul>
+<h2>Projects</h2>
+<a href="{{ url_for('project.create') }}" class="btn btn-primary">New Project</a>
+<div class="list-group mb-3 mt-3">
     {% for project in projects %}
-    <li><a href="{{ url_for('project.detail', project_id=project.id) }}">{{ project.name }}</a></li>
+    <a href="{{ url_for('project.detail', project_id=project.id) }}" class="list-group-item list-group-item-action">{{ project.name }}</a>
     {% endfor %}
-</ul>
+</div>
 {% endblock %}

@@ -3,18 +3,25 @@
 {% block title %}Test Case{% endblock %}
 
 {% block content %}
-<h1>Test Case Edit</h1>
+<h2>Test Case Edit</h2>
 <form method="post">
-    <label for="title">Title</label>
-    <input type="text" name="title" id="title" value="{{ testcase.title }}">
-    <label for="preconditions">Preconditions</label>
-    <input type="text" name="preconditions" id="preconditions" value="{{ testcase.preconditions }}">
-    <label for="steps">Steps</label>
-    <textarea name="steps" id="steps">{{ testcase.steps }}</textarea>
-    <label for="expected_result">Expected Result</label>
-    <input type="text" name="expected_result" id="expected_result" value="{{ testcase.expected_result }}">
-    <button type="submit">Save</button>
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" name="title" id="title" class="form-control" value="{{ testcase.title }}">
+    </div>
+    <div class="mb-3">
+        <label for="preconditions" class="form-label">Preconditions</label>
+        <input type="text" name="preconditions" id="preconditions" class="form-control" value="{{ testcase.preconditions }}">
+    </div>
+    <div class="mb-3">
+        <label for="steps" class="form-label">Steps</label>
+        <textarea name="steps" id="steps" class="form-control">{{ testcase.steps }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="expected_result" class="form-label">Expected Result</label>
+        <input type="text" name="expected_result" id="expected_result" class="form-control" value="{{ testcase.expected_result }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="btn btn-secondary">Cancel</a>
 </form>
-
-<a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}">Cancel</a>
 {% endblock %}

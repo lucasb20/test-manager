@@ -1,14 +1,12 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Home{% endblock %}</h1>
-{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-  <p>Welcome to the Test Manager!</p>
+  <h2>Welcome to the Test Manager!</h2>
 
   {% if g.user %}
-    <p>Hello, {{ g.user['name'] }}!</p>
+    <p>Hello, {{ g.user.name }}!</p>
   {% else %}
     <p>Please <a href="{{ url_for('auth.login') }}">log in</a> to manage your tests.</p>
   {% endif %}
