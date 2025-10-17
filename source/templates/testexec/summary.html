@@ -3,26 +3,30 @@
 {% block title %}Test Execution Summary{% endblock %}
 
 {% block content %}
-<h1>Test Execution Summary</h1>
-<p>Total Tests: {{ total_tests }}</p>
-<p>Passed Tests: {{ passed_tests }}</p>
-<p>Failed Tests: {{ failed_tests }}</p>
-<p>Skipped Tests: {{ skipped_tests }}</p>
+<h2>Test Execution Summary</h2>
+<p><strong>Total Tests:</strong> {{ total_tests }}</p>
+<p><strong>Passed Tests:</strong> {{ passed_tests }}</p>
+<p><strong>Failed Tests:</strong> {{ failed_tests }}</p>
+<p><strong>Skipped Tests:</strong> {{ skipped_tests }}</p>
 
-<table>
-    <tr>
-        <th>Test Case ID</th>
-        <th>Result</th>
-        <th>Executed By</th>
-        <th>Executed At</th>
-        <th>Notes</th>
-    </tr>
+<table class="table">
+    <thead class="table-dark table-striped table-bordered mt-3">
+        <tr>
+            <th>Test Case ID</th>
+            <th>Result</th>
+            <th>Executed By</th>
+            <th>Executed At</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
     {% for result in results %}
-    <tr>
-        <td>{{ result.test_case_id }}</td>
+    <tr
+        class="{% if result.result == 'pass' %}table-success{% elif result.result == 'fail' %}table-danger{% else %}table-warning{% endif %}"
+    >
+        <td>{{ result.test_case_code }}</td>
         <td>{{ result.result }}</td>
-        <td>{{ result.executed_by }}</td>
-        <td>{{ result.executed_at }}</td>
+        <td>{{ result.executor }}</td>
+        <td>{{ result.executed_at | format_datetime }}</td>
         <td>{{ result.notes }}</td>
     </tr>
     {% endfor %}

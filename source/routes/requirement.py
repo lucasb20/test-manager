@@ -1,0 +1,76 @@
+from flask import Blueprint, render_template, request, redirect, url_for, g
+from db import db, Requirement
+from decorators import admin_required
+
+bp = Blueprint('requirement', __name__, url_prefix='/requirement')
+
+@bp.route('/')
+@admin_required
+def index():
+    if not g.project:
+        return redirect(url_for('project.select', next=url_for('requirement.index')))
+    requirements = db.session.execute(
+        db.select(Requirement).filter_by(project_id=g.project.id).order_by(Requirement.order.asc())
+    ).scalars().all()
+    return render_template('requirement/index.html', requirements=requirements)
+
+@bp.route('/<int:requirement_id>')
+@admin_required
+def detail(requirement_id):
+    requirement = db.get_or_404(Requirement, requirement_id)
+    return render_template('requirement/detail.html', requirement=requirement)
+
+@bp.route('/<int:requirement_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit(requirement_id):
+    requirement = db.get_or_404(Requirement, requirement_id)
+    if request.method == 'POST':
+        requirement.title = request.form['title']
+        requirement.description = request.form['description']
+        requirement.status = request.form['status']
+        requirement.priority = request.form['priority']
+        db.session.commit()
+        return redirect(url_for('requirement.detail', requirement_id=requirement.id))
+    return render_template('requirement/edit.html', requirement=requirement)
+
+@bp.route('/create', methods=['GET', 'POST'])
+@admin_required
+def create():
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        status = request.form['status']
+        priority = request.form['priority']
+        requirement = Requirement(title=title, description=description, status=status, priority=priority, project_id=g.project.id)
+        db.session.add(requirement)
+        db.session.commit()
+        return redirect(url_for('requirement.detail', requirement_id=requirement.id))
+    return render_template('requirement/create.html')
+
+@bp.route('/<int:requirement_id>/delete', methods=['POST'])
+@admin_required
+def delete(requirement_id):
+    requirement = db.get_or_404(Requirement, requirement_id)
+    db.session.delete(requirement)
+    db.session.commit()
+    return redirect(url_for('requirement.index'))
+
+@bp.route('/reorder', methods=['GET'])
+@admin_required
+def reorder():
+    requirements = db.session.execute(
+        db.select(Requirement).filter_by(project_id=g.project.id).order_by(Requirement.order.asc())
+    ).scalars().all()
+    for index, req in enumerate(requirements):
+        req.order = index + 1
+    db.session.commit()
+    return render_template('requirement/reorder.html', requirements=requirements)
+
+@bp.route('/<int:requirement_id1>/<int:requirement_id2>', methods=['POST'])
+@admin_required
+def change_order(requirement_id1, requirement_id2):
+    requirement1 = db.get_or_404(Requirement, requirement_id1)
+    requirement2 = db.get_or_404(Requirement, requirement_id2)
+    requirement1.order, requirement2.order = requirement2.order, requirement1.order
+    db.session.commit()
+    return redirect(url_for('requirement.reorder'))

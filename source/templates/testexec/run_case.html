@@ -3,31 +3,30 @@
 {% block title %}Test Execution{% endblock %}
 
 {% block content %}
-<h1>Test Execution</h1>
+<h2>Test Execution</h2>
 
 <p>Running testcase {{ index + 1 }} of {{ total }}</p>
 
-<p><strong>Title</strong> {{ testcase.id }}: {{ testcase.title }}</p>
+<p><strong>ID</strong>: {{ testcase.code_with_prefix }}</p>
+<p><strong>Title</strong>: {{ testcase.title }}</p>
 <p><strong>Preconditions</strong>: {{ testcase.preconditions }}</p>
 <p><strong>Steps</strong>: {{ testcase.steps }}</p>
 <p><strong>Expected Results</strong>: {{ testcase.expected_result }}</p>
 
 <form method="post" action="{{ url_for('testexec.run_case', testexec_id=testexec.id, index=index) }}">
-    <div>
-        <label for="status">Status:</label>
-        <select id="status" name="status" required>
+    <div class="mb-3">
+        <select id="status" name="status" class="form-select" required>
             <option value="" disabled selected>Select status</option>
             <option value="pass">Pass</option>
             <option value="fail">Fail</option>
             <option value="blocked">Blocked</option>
         </select>
     </div>
-
-    <div>
-        <label for="notes">Notes:</label>
-        <textarea id="notes" name="notes"></textarea>
+    <div class="mb-3">
+        <label for="notes" class="form-label">Notes:</label>
+        <textarea id="notes" name="notes" class="form-control"></textarea>
     </div>
 
-    <button type="submit">Submit</button>
+    <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 {% endblock %}

@@ -3,21 +3,24 @@
 {% block title %}Test Plans{% endblock %}
 
 {% block content %}
-<h1>Test Plan</h1>
+<h2>Test Plan</h2>
 
 <p><strong>Name:</strong> {{ testplan.name }}</p>
 <p><strong>Description:</strong> {{ testplan.description }}</p>
 <p><strong>Milestone:</strong> {{ testplan.milestone }}</p>
 <p><strong>Platform:</strong> {{ testplan.platform }}</p>
-<p><strong>Created At:</strong> {{ testplan.created_at }}</p>
-<p><strong>Updated At:</strong> {{ testplan.updated_at }}</p>
-
-<a href="{{ url_for('testplan.select', testplan_id=testplan.id) }}">View Test Cases</a> |
-<a href="{{ url_for('testplan.insert', testplan_id=testplan.id) }}">Add Test Case</a> |
-<a href="{{ url_for('testplan.edit', testplan_id=testplan.id) }}">Edit</a> |
-<a href="{{ url_for('testexec.index', testplan_id=testplan.id) }}">Test Executions</a> |
+<p><strong>Created At:</strong> {{ testplan.created_at | format_datetime }}</p>
+<p><strong>Updated At:</strong> {{ testplan.updated_at | format_datetime }}</p>
 <form action="{{ url_for('testplan.delete', testplan_id=testplan.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this test plan?');">
-    <button type="submit" class="danger">Delete</button>
-</form> |
-<a href="{{ url_for('testplan.index') }}">Back to List</a>
+    <div class="mb-3">
+        <a href="{{ url_for('testexec.index', testplan_id=testplan.id) }}" class="btn btn-info">Test Executions</a>
+        <a href="{{ url_for('testplan.select', testplan_id=testplan.id) }}" class="btn btn-info">View Test Cases</a>
+        <a href="{{ url_for('testplan.insert', testplan_id=testplan.id) }}" class="btn btn-info">Add Test Case</a>
+    </div>
+    <div class="mb-3">
+        <a href="{{ url_for('testplan.edit', testplan_id=testplan.id) }}" class="btn btn-secondary">Edit</a>
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a href="{{ url_for('testplan.index') }}" class="btn btn-secondary">Back to List</a>
+    </div>
+</form>
 {% endblock %}

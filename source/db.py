@@ -36,13 +36,17 @@ class ProjectMember(db.Model):
 class Requirement(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str]
-    description: Mapped[str]
-    code: Mapped[str]
+    description: Mapped[str | None] = mapped_column(default=None)
     project_id: Mapped[int] = mapped_column(db.ForeignKey('project.id'))
     status: Mapped[str]
     priority: Mapped[str]
+    order: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
+
+    @property
+    def code_with_prefix(self):
+        return f"REQ-{self.order:03d}"
 
 class TestCase(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -51,8 +55,13 @@ class TestCase(db.Model):
     steps: Mapped[str]
     expected_result: Mapped[str]
     project_id: Mapped[int] = mapped_column(db.ForeignKey('project.id'))
+    order: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
+
+    @property
+    def code_with_prefix(self):
+        return f"CT-{self.order:03d}"
 
 class RequirementTestCase(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -88,6 +97,16 @@ class TestResult(db.Model):
     result: Mapped[str]
     executed_at: Mapped[datetime] = mapped_column(default=datetime.now)
     notes: Mapped[str]
+
+    @property
+    def test_case_code(self):
+        test_case = db.session.get(TestCase, self.test_case_id)
+        return test_case.code_with_prefix if test_case else "Unknown"
+
+    @property
+    def executor(self):
+        user = db.session.get(User, self.executed_by)
+        return user.name if user else "Unknown"
 
 class SystemLogs(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)

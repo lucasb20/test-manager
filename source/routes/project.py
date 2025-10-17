@@ -67,6 +67,11 @@ def edit(project_id):
 @admin_required
 def delete(project_id):
     project = db.get_or_404(Project, project_id)
+    project_members = db.session.execute(
+        db.select(ProjectMember).filter_by(project_id=project.id)
+    ).scalars()
+    for member in project_members:
+        db.session.delete(member)
     db.session.delete(project)
     db.session.commit()
     return redirect(url_for('project.index'))

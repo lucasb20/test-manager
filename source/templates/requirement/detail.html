@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Requirement{% endblock %}
+
+{% block content %}
+<h2>Requirement</h2>
+
+<p><strong>ID:</strong> {{ requirement.code_with_prefix }}</p>
+<p><strong>Title:</strong> {{ requirement.title }}</p>
+<p><strong>Description:</strong> {{ requirement.description }}</p>
+<p><strong>Priority:</strong> {{ requirement.priority }}</p>
+<p><strong>Status:</strong> {{ requirement.status }}</p>
+<p><strong>Created At:</strong> {{ requirement.created_at | format_datetime }}</p>
+<p><strong>Updated At:</strong> {{ requirement.updated_at | format_datetime }}</p>
+
+<form method="post" action="{{ url_for('requirement.delete', requirement_id=requirement.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this requirement?');">
+    <a href="{{ url_for('requirement.edit', requirement_id=requirement.id) }}" class="btn btn-secondary">Edit</a>
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a href="{{ url_for('requirement.index') }}" class="btn btn-secondary">Back to List</a>
+</form>
+{% endblock %}

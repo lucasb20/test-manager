@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Requirements{% endblock %}
+
+{% block content %}
+<h2>Requirement</h2>
+<form method="post">
+    <div class="mb-3">
+        <label for="title" class="form-label">Title:</label>
+        <input type="text" name="title" id="title" value="{{ requirement.title }}" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Description:</label>
+        <textarea name="description" id="description" class="form-control">{{ requirement.description }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="priority" class="form-label">Priority:</label>
+        <select name="priority" id="priority" class="form-select">
+            <option value="Low" {% if requirement.priority == 'Low' %}selected{% endif %}>Low</option>
+            <option value="Medium" {% if requirement.priority == 'Medium' %}selected{% endif %}>Medium</option>
+            <option value="High" {% if requirement.priority == 'High' %}selected{% endif %}>High</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="status" class="form-label">Status:</label>
+        <select name="status" id="status" class="form-select">
+            <option value="Draft" {% if requirement.status == 'Draft' %}selected{% endif %}>Draft</option>
+            <option value="In Progress" {% if requirement.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+            <option value="Completed" {% if requirement.status == 'Completed' %}selected{% endif %}>Completed</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Update Requirement</button>
+    <a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

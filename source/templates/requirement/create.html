@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Requirements{% endblock %}
+
+{% block content %}
+<h2>Requirements</h2>
+<form method="post">
+    <div class="mb-3">
+        <label for="title" class="form-label">Title:</label>
+        <input type="text" name="title" id="title" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Description:</label>
+        <textarea name="description" id="description" class="form-control"></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="priority" class="form-label">Priority:</label>
+        <select name="priority" id="priority" class="form-select">
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="status" class="form-label">Status:</label>
+        <select name="status" id="status" class="form-select">
+            <option value="Draft">Draft</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Requirement</button>
+</form>
+{% endblock %}

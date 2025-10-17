@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Cases{% endblock %}
+
+{% block content %}
+<h2>Reorder Test Cases</h2>
+
+<div class="mb-3">
+    <a href="{{ url_for('testcase.index') }}" class="btn btn-secondary">Back to List</a>
+</div>
+
+<table class="table mt-3">
+    <thead class="table-dark table-striped table-bordered">
+        <tr>
+            <th>Order</th>
+            <th>Title</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for testcase in testcases %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ testcase.title }}</td>
+            <td>
+                {% if loop.index > 1 %}
+                <form method="post" action="{{ url_for('testcase.change_order', testcase_id1=testcase.id, testcase_id2=testcases[loop.index0 - 1].id) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Move Up</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

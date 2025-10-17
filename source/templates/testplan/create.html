@@ -3,17 +3,25 @@
 {% block title %}Test Plans{% endblock %}
 
 {% block content %}
-<h1>Test Plans</h1>
+<h2>Test Plans</h2>
 <form action="{{ url_for('testplan.create') }}" method="post">
-    <label for="name">Name</label>
-    <input type="text" id="name" name="name" placeholder="Name" required>
-    <label for="description">Description</label>
-    <textarea name="description" id="description" placeholder="Description"></textarea>
-    <label for="milestone">Milestone</label>
-    <input type="text" name="milestone" id="milestone" placeholder="Milestone" required>
-    <label for="platform">Platform</label>
-    <input type="text" name="platform" id="platform" placeholder="Platform" required>
-    <button type="submit">Create Test Plan</button>
+    <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" id="name" name="name" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea name="description" id="description" class="form-control"></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="milestone">Milestone</label>
+        <input type="text" name="milestone" id="milestone" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="platform">Platform</label>
+        <input type="text" name="platform" id="platform" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Test Plan</button>
+    <a href="{{ url_for('testplan.index') }}" class="btn btn-secondary">Back to List</a>
 </form>
-<a href="{{ url_for('testplan.index') }}">Back to Test Plans</a>
 {% endblock %}

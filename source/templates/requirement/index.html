@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Requirements{% endblock %}
+
+{% block content %}
+<h2>Requirements</h2>
+
+<div class="mb-3"></div>
+    <a href="{{ url_for('requirement.reorder') }}" class="btn btn-secondary">Reorder Requirements</a>
+    <a href="{{ url_for('project.select', next=url_for('requirement.index')) }}" class="btn btn-secondary">Select Project</a>
+    <a href="{{ url_for('requirement.create') }}" class="btn btn-primary">Create Requirement</a>
+</div>
+
+{% if requirements %}
+<table class="table mt-3">
+    <thead class="table-dark table-striped table-bordered mt-3">
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for requirement in requirements %}
+        <tr
+        {% if requirement.status == 'Completed' %}class="table-primary"{% endif %}
+        {% if requirement.status == 'In Progress' %}class="table-secondary"{% endif %}
+        {% if requirement.status == 'Failed' %}class="table-light"{% endif %}>
+            <td>{{ requirement.code_with_prefix }}</td>
+            <td><a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}">{{ requirement.title }}</a></td>
+            <td>{{ requirement.priority }}</td>
+            <td>{{ requirement.status }}</td>
+            <td>{{ requirement.created_at | format_datetime }}</td>
+            <td>{{ requirement.updated_at | format_datetime }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No requirements found.</p>
+{% endif %}
+{% endblock %}

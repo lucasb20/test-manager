@@ -24,3 +24,8 @@ def verify_reset_token(token, secret_key):
         return data['user_id']
     except:
         return None
+
+def format_datetime(dt):
+    if dt is None:
+        return "N/A"
+    return dt.strftime("%d/%m/%Y %H:%M")

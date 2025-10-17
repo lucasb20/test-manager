@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, g
+from flask import Blueprint, request, render_template, redirect, url_for, g, flash
 from db import db, TestExecution, TestResult, TestCase, TestPlanCase
 from decorators import admin_required
 
@@ -16,6 +16,12 @@ def index(testplan_id):
 @bp.route('/<int:testplan_id>/create', methods=['GET'])
 @admin_required
 def create(testplan_id):
+    testcases = db.session.execute(
+        db.select(TestCase.id).join(TestPlanCase).filter(TestPlanCase.test_plan_id == testplan_id)
+    ).scalars().all()
+    if len(testcases) == 0:
+        flash('No test cases in the test plan. Please add test cases before creating a test execution.')
+        return redirect(url_for('testplan.detail', testplan_id=testplan_id))
     testexec = TestExecution(test_plan_id=testplan_id, status='progress')
     db.session.add(testexec)
     db.session.commit()

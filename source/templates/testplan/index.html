@@ -3,16 +3,18 @@
 {% block title %}Test Plans{% endblock %}
 
 {% block content %}
-<h1>Test Plans</h1>
+<h2>Test Plans</h2>
 
-<a href="{{ url_for('project.select', next=url_for('testplan.index')) }}">Select Project</a> |
-<a href="{{ url_for('testplan.create') }}">Create New Test Plan</a>
+<div class="mb-3">
+    <a href="{{ url_for('project.select', next=url_for('testplan.index')) }}" class="btn btn-secondary">Select Project</a>
+    <a href="{{ url_for('testplan.create') }}" class="btn btn-primary">Create New Test Plan</a>
+</div>
 
-<ul>
+<div class="list-group mb-3 mt-3">
     {% for testplan in testplans %}
-    <li><a href="{{ url_for('testplan.detail', testplan_id=testplan.id) }}">{{ testplan.name }}</a></li>
+    <a href="{{ url_for('testplan.detail', testplan_id=testplan.id) }}" class="list-group-item list-group-item-action">{{ testplan.name }}</a>
     {% else %}
-    <li>No test plans available.</li>
+    <p>No test plans available.</p>
     {% endfor %}
-</ul>
+</div>
 {% endblock %}

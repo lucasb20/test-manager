@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Requirements{% endblock %}
+
+{% block content %}
+<h2>Reorder Requirements</h2>
+
+<div class="mb-3">
+    <a href="{{ url_for('requirement.index') }}" class="btn btn-secondary">Back to List</a>
+</div>
+
+<table class="table">
+    <thead class="table-dark table-striped table-bordered mt-3">
+        <tr>
+            <th>Order</th>
+            <th>Title</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for requirement in requirements %}
+        <tr
+        {% if requirement.status == 'Completed' %}class="table-primary"{% endif %}
+        {% if requirement.status == 'In Progress' %}class="table-secondary"{% endif %}
+        {% if requirement.status == 'Failed' %}class="table-light"{% endif %}>
+            <td>{{ loop.index }}</td>
+            <td>{{ requirement.title }}</td>
+            <td>{{ requirement.priority }}</td>
+            <td>{{ requirement.status }}</td>
+            <td>
+                {% if loop.index > 1 %}
+                <form method="post" action="{{ url_for('requirement.change_order', requirement_id1=requirement.id, requirement_id2=requirements[loop.index0 - 1].id) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Move Up</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

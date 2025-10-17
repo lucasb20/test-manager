@@ -3,19 +3,21 @@
 {% block title %}Test Plans{% endblock %}
 
 {% block content %}
-<h1>Test Plans</h1>
-<ul>
+<h2>Test Cases for Test Plan</h2>
+{% if testcases %}
+<ul class="list-group mb-3">
     {% for testcase in testcases %}
-    <li>{{ testcase.id }} - {{ testcase.title }} -
+    <li class="list-group-item">{{ testcase.id }} - {{ testcase.title }}
         <form action="{{ url_for('testplan.remove', testplancase_id=testcase.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to remove this test case from the test plan?');">
-            <button type="submit" class="danger">Remove</button>
+            <button type="submit" class="btn btn-danger">Remove</button>
         </form>
     </li>
-    {% else %}
-    <li>No test cases available.</li>
     {% endfor %}
 </ul>
+{% else %}
+<p>No test cases available.</p>
+{% endif %}
 
-<a href="{{ url_for('testplan.insert', testplan_id=request.view_args['testplan_id']) }}">Insert Test Case</a> |
-<a href="{{ url_for('testplan.index') }}">Back to List</a>
+<a href="{{ url_for('testplan.insert', testplan_id=request.view_args['testplan_id']) }}" class="btn btn-primary">Insert Test Cases</a>
+<a href="{{ url_for('testplan.detail', testplan_id=request.view_args['testplan_id']) }}" class="btn btn-secondary">Back to Test Plan</a>
 {% endblock %}

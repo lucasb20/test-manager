@@ -3,11 +3,16 @@
 {% block title %}Test Executions{% endblock %}
 
 {% block content %}
-<h1>Test Executions for Test Plan {{ testplan_id }}</h1>
+<h2>Test Executions for Test Plan {{ testplan_id }}</h2>
+
+<div class="mb-3">
+    <a href="{{ url_for('testexec.create', testplan_id=testplan_id) }}" class="btn btn-primary">Create New Test Execution</a>
+    <a href="{{ url_for('testplan.detail', testplan_id=testplan_id) }}" class="btn btn-secondary">Back to Test Plan</a>
+</div>
 
 {% if testexecs %}
-<table>
-    <thead>
+<table class="table">
+    <thead class="table-dark table-striped table-bordered mt-3">
         <tr>
             <th>ID</th>
             <th>Created At</th>
@@ -19,7 +24,7 @@
         {% for testexec in testexecs %}
         <tr>
             <td>{{ testexec.id }}</td>
-            <td>{{ testexec.created_at }}</td>
+            <td>{{ testexec.created_at | format_datetime }}</td>
             <td>{{ testexec.status }}</td>
             <td>
                 <a href="{{ url_for('testexec.run_case', testexec_id=testexec.id, index=0) }}">View Details</a>
@@ -32,6 +37,5 @@
 <p>No test executions found for this test plan.</p>
 {% endif %}
 
-<a href="{{ url_for('testexec.create', testplan_id=testplan_id) }}">Create New Test Execution</a>
 
 {% endblock %}
