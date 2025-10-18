@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Previous Test Executions{% endblock %}
+
+{% block content %}
+<h2>Previous Test Executions</h2>
+
+<div class="mb-3">
+    <a href="{{ url_for('testexec.index', testplan_id=testplan_id) }}" class="btn btn-secondary">Back to Test Execution</a>
+    <a href="{{ url_for('testplan.detail', testplan_id=testplan_id) }}" class="btn btn-secondary">Back to Test Plan</a>
+</div>
+
+<table class="table">
+    <thead class="table-dark table-striped table-bordered mt-3">
+        <tr>
+            <th>Name</th>
+            <th>Executed Cases</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for testexec in testexecs %}
+            <tr>
+                <td>{{ testexec.name }}</td>
+                <td>{{ testexec.next_case }}</td>
+                <td>{{ testexec.status }}</td>
+                <td>{{ testexec.created_at | format_datetime }}</td>
+                <td>
+                    {% if testexec.status == 'finished' %}
+                        <a href="{{ url_for('testexec.summary', testexec_id=testexec.id) }}">View Summary</a>
+                    {% else %}
+                        <a href="{{ url_for('testexec.run_case', testexec_id=testexec.id, index=testexec.next_case) }}">Continue</a>
+                    {% endif %}
+                    <form method="post" action="{{ url_for('testexec.delete', testexec_id=testexec.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this test execution?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

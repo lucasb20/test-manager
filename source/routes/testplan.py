@@ -19,7 +19,12 @@ def index():
 @admin_required
 def detail(testplan_id):
     testplan = db.get_or_404(TestPlan, testplan_id)
-    return render_template('testplan/detail.html', testplan=testplan)
+    testcases = db.session.execute(
+        db.select(TestCase).join(TestPlanCase).filter(
+            TestPlanCase.test_plan_id == testplan_id
+        )
+    ).scalars().all()
+    return render_template('testplan/detail.html', testplan=testplan, testcases=testcases)
 
 @bp.route('/create', methods=['GET', 'POST'])
 @admin_required
@@ -56,38 +61,25 @@ def delete(testplan_id):
     db.session.commit()
     return redirect(url_for('testplan.index'))
 
-@bp.route('/<int:testplan_id>/select', methods=['GET', 'POST'])
+@bp.route('/<int:testplan_id>/associate', methods=['GET', 'POST'])
 @admin_required
-def select(testplan_id):
-    testcases = db.session.execute(
-        db.select(TestCase).join(TestPlanCase).filter_by(test_plan_id=testplan_id)
-    ).scalars().all()
-    return render_template('testplan/select.html', testcases=testcases)
-
-@bp.route('/<int:testplan_id>/insert', methods=['GET', 'POST'])
-@admin_required
-def insert(testplan_id):
-    if request.method == 'POST':
-        testcase_ids = request.form.getlist('testcase_ids')
-        for testcase_id in testcase_ids:
-            testplancase = db.session.execute(
-                db.select(TestPlanCase).filter_by(test_plan_id=testplan_id, test_case_id=testcase_id)
-            ).first()
-            if testplancase:
-                continue
-            association = TestPlanCase(test_plan_id=testplan_id, test_case_id=testcase_id)
-            db.session.add(association)
-        db.session.commit()
-        return redirect(url_for('testplan.detail', testplan_id=testplan_id))
+def associate(testplan_id):
     testcases = db.session.execute(
         db.select(TestCase).filter_by(project_id=g.project.id)
     ).scalars().all()
-    return render_template('testplan/insert.html', testcases=testcases)
-
-@bp.route('/<int:testplancase_id>/remove', methods=['POST'])
-@admin_required
-def remove(testplancase_id):
-    association = db.get_or_404(TestPlanCase, testplancase_id)
-    db.session.delete(association)
-    db.session.commit()
-    return redirect(url_for('testplan.select', testplan_id=association.test_plan_id))
+    associated_ids = db.session.execute(
+        db.select(TestPlanCase.test_case_id).filter_by(test_plan_id=testplan_id)
+    ).scalars().all()
+    if request.method == 'POST':
+        testcase_ids = request.form.getlist('testcase_ids')
+        for testcase in testcases:
+            if str(testcase.id) in testcase_ids and testcase.id not in associated_ids:
+                association = TestPlanCase(test_plan_id=testplan_id, test_case_id=testcase.id)
+                db.session.add(association)
+            elif str(testcase.id) not in testcase_ids and testcase.id in associated_ids:
+                association = db.session.execute(
+                    db.delete(TestPlanCase).where(TestPlanCase.test_plan_id == testplan_id, TestPlanCase.test_case_id == testcase.id)
+                )
+        db.session.commit()
+        return redirect(url_for('testplan.detail', testplan_id=testplan_id))
+    return render_template('testplan/associate.html', testcases=testcases, associated_ids=associated_ids)

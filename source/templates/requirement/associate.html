@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Requirement{% endblock %}
+
+{% block content %}
+  <h2>Associate Test Cases to Requirement: {{ requirement.code_with_prefix }}</h2>
+
+  <form method="post" action="{{ url_for('requirement.associate', requirement_id=requirement.id) }}">
+    {% for testcase in testcases %}
+    <div class="form mb-3">
+      <label for="testcase_{{ testcase.id }}" class="form-label">{{ testcase.title }}</label>
+      <input type="checkbox" id="testcase_{{ testcase.id }}" name="testcase_ids" value="{{ testcase.id }}" {% if testcase.id in associated_ids %}checked{% endif %}>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}" class="btn btn-secondary">Cancel</a>
+  </form>
+{% endblock %}

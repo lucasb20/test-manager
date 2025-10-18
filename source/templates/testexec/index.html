@@ -3,39 +3,43 @@
 {% block title %}Test Executions{% endblock %}
 
 {% block content %}
-<h2>Test Executions for Test Plan {{ testplan_id }}</h2>
+<h2>Test Execution</h2>
 
 <div class="mb-3">
-    <a href="{{ url_for('testexec.create', testplan_id=testplan_id) }}" class="btn btn-primary">Create New Test Execution</a>
+    <a href="{{ url_for('testexec.create', testplan_id=testplan_id) }}" class="btn btn-primary">Start Test Execution</a>
+    <a href="{{ url_for('testexec.previous', testplan_id=testplan_id) }}" class="btn btn-info">View Previous Executions</a>
+    <a href="{{ url_for('testplan.associate', testplan_id=testplan_id) }}" class="btn btn-secondary">Add Test Case</a>
     <a href="{{ url_for('testplan.detail', testplan_id=testplan_id) }}" class="btn btn-secondary">Back to Test Plan</a>
 </div>
 
-{% if testexecs %}
+{% if testplancases %}
 <table class="table">
     <thead class="table-dark table-striped table-bordered mt-3">
         <tr>
+            <th>Order</th>
             <th>ID</th>
-            <th>Created At</th>
-            <th>Status</th>
+            <th>Title</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        {% for testexec in testexecs %}
+        {% for testplancase in testplancases %}
         <tr>
-            <td>{{ testexec.id }}</td>
-            <td>{{ testexec.created_at | format_datetime }}</td>
-            <td>{{ testexec.status }}</td>
+            <td>{{ loop.index }}</td>
+            <td>{{ testplancase.testcase.code_with_prefix }}</td>
+            <td>{{ testplancase.testcase.title }}</td>
             <td>
-                <a href="{{ url_for('testexec.run_case', testexec_id=testexec.id, index=0) }}">View Details</a>
+                {% if loop.index > 1 %}
+                <form method="post" action="{{ url_for('testexec.change_order', testplan_id=testplan_id, testplancase_id1=testplancase.id, testplancase_id2=testplancases[loop.index0 - 1].id) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Move Up</button>
+                </form>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p>No test executions found for this test plan.</p>
+<p>No test cases found for this test plan.</p>
 {% endif %}
-
-
 {% endblock %}

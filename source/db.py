@@ -82,12 +82,28 @@ class TestPlanCase(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     test_plan_id: Mapped[int] = mapped_column(db.ForeignKey('test_plan.id'))
     test_case_id: Mapped[int] = mapped_column(db.ForeignKey('test_case.id'))
+    order: Mapped[int] = mapped_column(default=0)
+
+    @property
+    def testcase(self):
+        return db.session.get(TestCase, self.test_case_id)
 
 class TestExecution(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     test_plan_id: Mapped[int] = mapped_column(db.ForeignKey('test_plan.id'))
     status: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+
+    @property
+    def name(self):
+        name = db.session.get(TestPlan, self.test_plan_id).name
+        return name if name else "Unnamed Test Plan"
+
+    @property
+    def next_case(self):
+        return len(db.session.execute(
+            db.select(TestResult.id).filter_by(test_execution_id=self.id)
+        ).scalars().all())
 
 class TestResult(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)

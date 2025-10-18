@@ -28,5 +28,6 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Submit</button>
+    <a href="{{ url_for('testexec.previous', testplan_id=testexec.test_plan_id) }}" class="btn btn-secondary">Pause</a>
 </form>
 {% endblock %}

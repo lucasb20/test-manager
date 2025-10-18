@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, g
-from db import db, TestCase
+from db import db, TestCase, Requirement, RequirementTestCase
 from decorators import admin_required
 
 
@@ -19,7 +19,10 @@ def index():
 @admin_required
 def detail(testcase_id):
     testcase = db.get_or_404(TestCase, testcase_id)
-    return render_template('testcase/detail.html', testcase=testcase)
+    requirements = db.session.execute(
+        db.select(Requirement).join(RequirementTestCase).filter(RequirementTestCase.test_case_id == testcase_id)
+    ).scalars().all()
+    return render_template('testcase/detail.html', testcase=testcase, requirements=requirements)
 
 @bp.route('/<int:testcase_id>/edit', methods=['GET', 'POST'])
 @admin_required
@@ -75,3 +78,27 @@ def change_order(testcase_id1, testcase_id2):
     testcase1.order, testcase2.order = testcase2.order, testcase1.order
     db.session.commit()
     return redirect(url_for('testcase.reorder'))
+
+@bp.route('/<int:testcase_id>/associate', methods=['GET', 'POST'])
+@admin_required
+def associate(testcase_id):
+    testcase = db.get_or_404(TestCase, testcase_id)
+    requirements = db.session.execute(
+        db.select(Requirement).filter_by(project_id=g.project.id)
+    ).scalars().all()
+    associated_ids = db.session.execute(
+        db.select(RequirementTestCase.requirement_id).filter_by(test_case_id=testcase_id)
+    ).scalars().all()
+    if request.method == 'POST':
+        requirement_ids = request.form.getlist('requirement_ids')
+        for req in requirements:
+            if str(req.id) in requirement_ids and req.id not in associated_ids:
+                association = RequirementTestCase(requirement_id=req.id, test_case_id=testcase_id)
+                db.session.add(association)
+            elif str(req.id) not in requirement_ids and req.id in associated_ids:
+                association = db.session.execute(
+                    db.delete(RequirementTestCase).filter_by(requirement_id=req.id, test_case_id=testcase_id)
+                )
+        db.session.commit()
+        return redirect(url_for('testcase.detail', testcase_id=testcase_id))
+    return render_template('testcase/associate.html', testcase=testcase, requirements=requirements, associated_ids=associated_ids)
