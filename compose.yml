@@ -23,7 +23,7 @@ services:
 
   web:
     build:
-      context: source
+      context: web
     restart: always
     secrets:
       - db-password

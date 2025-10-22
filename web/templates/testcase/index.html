@@ -9,6 +9,7 @@
     <a href="{{ url_for('testcase.reorder') }}" class="btn btn-secondary">Reorder Test Cases</a>
     <a href="{{ url_for('project.select', next=url_for('testcase.index')) }}" class="btn btn-secondary">Select Project</a>
     <a href="{{ url_for('testcase.create') }}" class="btn btn-primary">Create New Test Case</a>
+    <a href="{{ url_for('testcase.export') }}" class="btn btn-secondary">Export CSV</a>
 </div>
 
 {% if testcases %}

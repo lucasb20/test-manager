@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, g
+from flask import Blueprint, render_template, request, redirect, url_for, g, flash
 from db import db, Requirement, TestCase, RequirementTestCase
 from decorators import admin_required
 
@@ -47,6 +47,7 @@ def create():
         requirement = Requirement(title=title, description=description, priority=priority, project_id=g.project.id)
         db.session.add(requirement)
         db.session.commit()
+        flash('Requirement created successfully. Reorder requirements to set its position.')
         return redirect(url_for('requirement.detail', requirement_id=requirement.id))
     return render_template('requirement/create.html')
 

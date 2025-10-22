@@ -65,7 +65,7 @@ def delete(testplan_id):
 @admin_required
 def associate(testplan_id):
     testcases = db.session.execute(
-        db.select(TestCase).filter_by(project_id=g.project.id)
+        db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
     ).scalars().all()
     associated_ids = db.session.execute(
         db.select(TestPlanCase.test_case_id).filter_by(test_plan_id=testplan_id)

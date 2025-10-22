@@ -4,6 +4,10 @@
 
 {% block content %}
 <h2>Test Execution Summary</h2>
+<div class="mb-3">
+    <a href="{{ url_for('testexec.export', testexec_id=testexec.id) }}" class="btn btn-secondary">Export CSV</a>
+</div>
+
 <p><strong>Total Tests:</strong> {{ total_tests }}</p>
 <p><strong>Passed Tests:</strong> {{ passed_tests }}</p>
 <p><strong>Failed Tests:</strong> {{ failed_tests }}</p>

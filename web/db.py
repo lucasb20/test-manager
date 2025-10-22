@@ -57,7 +57,14 @@ class TestCase(db.Model):
 
     @property
     def code_with_prefix(self):
-        return f"CT-{self.order:03d}"
+        return f"TC-{self.order:03d}"
+
+    @property
+    def requirements_codes(self):
+        reqs = db.session.execute(
+            db.select(Requirement).join(RequirementTestCase).filter(RequirementTestCase.test_case_id == self.id)
+        ).scalars().all()
+        return ', '.join([req.code_with_prefix for req in reqs])
 
 class RequirementTestCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)

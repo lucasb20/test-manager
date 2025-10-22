@@ -2,6 +2,8 @@ from smtplib import SMTP
 from email.mime.text import MIMEText
 import jwt
 from datetime import datetime, timedelta, timezone
+from io import StringIO
+import csv
 
 
 def send_email(to, subject, body):
@@ -34,3 +36,12 @@ def database_uri(database="example", user="root", password_file=None, host="db",
     pf = open(password_file, 'r')
     password = pf.read()
     return f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4"
+
+def create_csv(data):
+    output = StringIO()
+    writer = csv.writer(output)
+
+    for row in data:
+        writer.writerow(row)
+
+    return output.getvalue()

@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, g
+from flask import Blueprint, render_template, request, redirect, url_for, g, flash, Response
 from db import db, TestCase, Requirement, RequirementTestCase
 from decorators import admin_required
+from utils import create_csv
 
 
 bp = Blueprint('testcase', __name__, url_prefix='/testcase')
@@ -48,6 +49,7 @@ def create():
         testcase = TestCase(title=title, preconditions=preconditions, steps=steps, expected_result=expected_result, project_id=g.project.id)
         db.session.add(testcase)
         db.session.commit()
+        flash('Test case created successfully. Reorder test cases to set its position.')
         return redirect(url_for('testcase.detail', testcase_id=testcase.id))
     return render_template('testcase/create.html')
 
@@ -102,3 +104,20 @@ def associate(testcase_id):
         db.session.commit()
         return redirect(url_for('testcase.detail', testcase_id=testcase_id))
     return render_template('testcase/associate.html', testcase=testcase, requirements=requirements, associated_ids=associated_ids)
+
+@bp.route('/export', methods=['GET'])
+@admin_required
+def export():
+    testcases = db.session.execute(
+        db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
+    ).scalars().all()
+    data = [("ID", "Title", "Requirements", "Preconditions", "Steps", "Expected Result")]
+    for tc in testcases:
+        data.append((tc.code_with_prefix, tc.title, tc.requirements_codes, tc.preconditions, tc.steps, tc.expected_result))
+    csv_data = create_csv(data)
+    response = Response(
+        csv_data,
+        mimetype='text/csv',
+        headers={"Content-disposition": "attachment; filename=testcases.csv"}
+    )
+    return response

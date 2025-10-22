@@ -1,6 +1,7 @@
-from flask import Blueprint, request, render_template, redirect, url_for, g, flash
+from flask import Blueprint, request, render_template, redirect, url_for, g, flash, Response
 from db import db, TestExecution, TestResult, TestCase, TestPlanCase, TestPlan
 from decorators import admin_required
+from utils import create_csv
 
 
 bp = Blueprint('testexec', __name__, url_prefix='/testexec')
@@ -110,3 +111,29 @@ def change_order(testplan_id, testplancase_id1, testplancase_id2):
     testplancase1.order, testplancase2.order = testplancase2.order, testplancase1.order
     db.session.commit()
     return redirect(url_for('testexec.index', testplan_id=testplan_id))
+
+@bp.route('/<int:testexec_id>/export', methods=['GET'])
+def export(testexec_id):
+    testexec = db.get_or_404(TestExecution, testexec_id)
+    testplan = db.session.get(TestPlan, testexec.test_plan_id)
+    results = db.session.execute(
+        db.select(TestResult).filter_by(test_execution_id=testexec.id)
+    ).scalars().all()
+    data = [("Milestone", "Platform", "Test Case Code", "Status", "Executed By", "Executed At", "Notes")]
+    for result in results:
+        data.append((
+            testplan.milestone,
+            testplan.platform,
+            result.test_case_code,
+            result.result,
+            result.executor,
+            result.executed_at.strftime("%Y-%m-%d %H:%M"),
+            result.notes
+        ))
+    csv_data = create_csv(data)
+    response = Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=testexec.csv"}
+    )
+    return response
