@@ -7,12 +7,12 @@ from routes.testcase import bp as testcase_bp
 from routes.testplan import bp as testplan_bp
 from routes.testexec import bp as execution_bp
 from routes.requirement import bp as requirement_bp
-from utils import format_datetime
+from utils import format_datetime, database_uri
 
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "dev"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = database_uri("testdb", password_file='/run/secrets/db-password')
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(project_bp)

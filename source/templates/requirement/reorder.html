@@ -15,20 +15,15 @@
             <th>Order</th>
             <th>Title</th>
             <th>Priority</th>
-            <th>Status</th>
             <th>Action</th>
         </tr>
     </thead>
     <tbody>
         {% for requirement in requirements %}
-        <tr
-        {% if requirement.status == 'Completed' %}class="table-primary"{% endif %}
-        {% if requirement.status == 'In Progress' %}class="table-secondary"{% endif %}
-        {% if requirement.status == 'Failed' %}class="table-light"{% endif %}>
+        <tr>
             <td>{{ loop.index }}</td>
             <td>{{ requirement.title }}</td>
             <td>{{ requirement.priority }}</td>
-            <td>{{ requirement.status }}</td>
             <td>
                 {% if loop.index > 1 %}
                 <form method="post" action="{{ url_for('requirement.change_order', requirement_id1=requirement.id, requirement_id2=requirements[loop.index0 - 1].id) }}">

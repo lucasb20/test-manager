@@ -29,3 +29,8 @@ def format_datetime(dt):
     if dt is None:
         return "N/A"
     return dt.strftime("%d/%m/%Y %H:%M")
+
+def database_uri(database="example", user="root", password_file=None, host="db", port=3306):
+    pf = open(password_file, 'r')
+    password = pf.read()
+    return f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4"

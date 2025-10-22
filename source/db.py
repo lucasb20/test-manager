@@ -1,98 +1,94 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 
 
 class Base(DeclarativeBase):
   pass
 
-
 db = SQLAlchemy(model_class=Base)
 
-
 class User(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True)
-    email: Mapped[str] = mapped_column(unique=True)
-    password: Mapped[str]
-    is_admin: Mapped[bool] = mapped_column(default=False)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(128), unique=True, nullable=False)
+    password = db.Column(db.String(200))
+    is_admin = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
 class Project(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True)
-    description: Mapped[str | None] = mapped_column(default=None)
-    manager_id: Mapped[int] = mapped_column(db.ForeignKey('user.id'))
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(500), default=None)
+    manager_id = db.Column(db.ForeignKey('user.id'))
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
 class ProjectMember(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    project_id: Mapped[int] = mapped_column(db.ForeignKey('project.id'))
-    user_id: Mapped[int] = mapped_column(db.ForeignKey('user.id'))
-    role: Mapped[str]
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.ForeignKey('project.id'))
+    user_id = db.Column(db.ForeignKey('user.id'))
+    role = db.Column(db.String(50))
 
 class Requirement(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str]
-    description: Mapped[str | None] = mapped_column(default=None)
-    project_id: Mapped[int] = mapped_column(db.ForeignKey('project.id'))
-    status: Mapped[str]
-    priority: Mapped[str]
-    order: Mapped[int] = mapped_column(default=0)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200))
+    description = db.Column(db.String(500), default=None)
+    project_id = db.Column(db.ForeignKey('project.id'))
+    priority = db.Column(db.String(50))
+    order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     @property
     def code_with_prefix(self):
         return f"REQ-{self.order:03d}"
 
 class TestCase(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str]
-    preconditions: Mapped[str]
-    steps: Mapped[str]
-    expected_result: Mapped[str]
-    project_id: Mapped[int] = mapped_column(db.ForeignKey('project.id'))
-    order: Mapped[int] = mapped_column(default=0)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200))
+    preconditions = db.Column(db.String(200))
+    steps = db.Column(db.String(500))
+    expected_result = db.Column(db.String(200))
+    project_id = db.Column(db.ForeignKey('project.id'))
+    order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     @property
     def code_with_prefix(self):
         return f"CT-{self.order:03d}"
 
 class RequirementTestCase(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    requirement_id: Mapped[int] = mapped_column(db.ForeignKey('requirement.id'))
-    test_case_id: Mapped[int] = mapped_column(db.ForeignKey('test_case.id'))
+    id = db.Column(db.Integer, primary_key=True)
+    requirement_id = db.Column(db.ForeignKey('requirement.id'))
+    test_case_id = db.Column(db.ForeignKey('test_case.id'))
 
 class TestPlan(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-    description: Mapped[str | None] = mapped_column(default=None)
-    project_id: Mapped[int] = mapped_column(db.ForeignKey('project.id'))
-    platform: Mapped[str]
-    milestone: Mapped[str]
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200))
+    description = db.Column(db.String(500), default=None)
+    project_id = db.Column(db.ForeignKey('project.id'))
+    platform = db.Column(db.String(50))
+    milestone = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
 class TestPlanCase(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    test_plan_id: Mapped[int] = mapped_column(db.ForeignKey('test_plan.id'))
-    test_case_id: Mapped[int] = mapped_column(db.ForeignKey('test_case.id'))
-    order: Mapped[int] = mapped_column(default=0)
+    id = db.Column(db.Integer, primary_key=True)
+    test_plan_id = db.Column(db.ForeignKey('test_plan.id'))
+    test_case_id = db.Column(db.ForeignKey('test_case.id'))
+    order = db.Column(db.Integer, default=0)
 
     @property
     def testcase(self):
         return db.session.get(TestCase, self.test_case_id)
 
 class TestExecution(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    test_plan_id: Mapped[int] = mapped_column(db.ForeignKey('test_plan.id'))
-    status: Mapped[str]
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+    id = db.Column(db.Integer, primary_key=True)
+    test_plan_id = db.Column(db.ForeignKey('test_plan.id'))
+    status = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
     @property
     def name(self):
@@ -106,13 +102,13 @@ class TestExecution(db.Model):
         ).scalars().all())
 
 class TestResult(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    test_execution_id: Mapped[int] = mapped_column(db.ForeignKey('test_execution.id'))
-    test_case_id: Mapped[int] = mapped_column(db.ForeignKey('test_case.id'))
-    executed_by: Mapped[int] = mapped_column(db.ForeignKey('user.id'))
-    result: Mapped[str]
-    executed_at: Mapped[datetime] = mapped_column(default=datetime.now)
-    notes: Mapped[str]
+    id = db.Column(db.Integer, primary_key=True)
+    test_execution_id = db.Column(db.ForeignKey('test_execution.id'))
+    test_case_id = db.Column(db.ForeignKey('test_case.id'))
+    executed_by = db.Column(db.ForeignKey('user.id'))
+    result = db.Column(db.String(50))
+    executed_at = db.Column(db.DateTime, default=datetime.now)
+    notes = db.Column(db.String(200))
 
     @property
     def test_case_code(self):
@@ -124,16 +120,8 @@ class TestResult(db.Model):
         user = db.session.get(User, self.executed_by)
         return user.name if user else "Unknown"
 
-class SystemLogs(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(db.ForeignKey('user.id'))
-    action: Mapped[str]
-    table_name: Mapped[str]
-    record_id: Mapped[int]
-    timestamp: Mapped[datetime] = mapped_column(default=datetime.now)
-
 class AISuggestion(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    requirement_id: Mapped[int] = mapped_column(db.ForeignKey('requirement.id'))
-    suggestion: Mapped[str]
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+    id = db.Column(db.Integer, primary_key=True)
+    requirement_id = db.Column(db.ForeignKey('requirement.id'))
+    suggestion = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, default=datetime.now)

@@ -32,7 +32,6 @@ def edit(requirement_id):
     if request.method == 'POST':
         requirement.title = request.form['title']
         requirement.description = request.form['description']
-        requirement.status = request.form['status']
         requirement.priority = request.form['priority']
         db.session.commit()
         return redirect(url_for('requirement.detail', requirement_id=requirement.id))
@@ -44,9 +43,8 @@ def create():
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
-        status = request.form['status']
         priority = request.form['priority']
-        requirement = Requirement(title=title, description=description, status=status, priority=priority, project_id=g.project.id)
+        requirement = Requirement(title=title, description=description, priority=priority, project_id=g.project.id)
         db.session.add(requirement)
         db.session.commit()
         return redirect(url_for('requirement.detail', requirement_id=requirement.id))

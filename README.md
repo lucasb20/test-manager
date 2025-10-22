@@ -1,60 +1,54 @@
 # test-manager
-Ferramenta de gestão de testes de software.
+Software test management tool.
 
 # Conteúdos
 
-1. [Introdução](#1-introdução)
-2. [Requisitos de Sistema](#2-requisitos-de-sistema)
-3. [Instalação](#3-instalação)
+1. [Introduction](#1-introduction)
+2. [System Requirements](#2-system-requirements)
+3. [Installation](#3-installation)
 
-## 1. Introdução
+## 1. Introduction
 
-Test Manager é um sistema de gerenciamento de testes que permita a criação, organização, execução e rastreabilidade de casos de testes de software.
-O foco é substituir planilhas e documentos dispersos por uma plataforma centralizada.
+Test Manager is a test management system that allows you to create, organize, execute, and track software test cases. Its focus is to replace scattered spreadsheets and documents with a centralized platform.
 
-O uso de ferramentas genéricas como planilhas e documentos para gerenciar testes de software é ineficiente.
-Isso causa problemas como desorganização, falta de rastreabilidade, colaboração limitada e relatórios ineficazes.
+Using generic tools like spreadsheets and documents to manage software testing is inefficient. This leads to problems like disorganization, lack of traceability, limited collaboration, and ineffective reporting.
 
-O sistema irá centralizar o gerenciamento de testes, aumentando a eficiência das equipes de QA.
-Isso levará a uma melhoria na qualidade do software, redução de bugs em produção e aceleração do ciclo de desenvolvimento, permitindo que as equipes se concentrem em criar e não em gerenciar documentos.
+The system will centralize test management, increasing the efficiency of QA teams. This will lead to improved software quality, reduced bugs in production, and accelerated development cycles, allowing teams to focus on creating, not managing, documents.
 
-## 2. Requisitos de Sistema
+## 2. System Requirements
 
-O ambiente do servidor deve consistir de:
+The server environment should consist of:
 - web-server: Nginx x.x
-- Python > 3.10
+- Python > 3.12
 - DBMS
   - MySQL x.x.x
   - MariaDB x.x
   - Postgres x.x
 
-Testado nos nevegadores web:
+Tested on web browsers:
 - Firefox
 - Chrome
 
-## 3. Instalação
+## 3. Installation
 
-### Com Docker
-use [README.docker.md](README.docker.md)
+### With Docker
 
-### Sem Docker
+Use `docker-compose up` to start containers in the foreground.
 
-A seguir detalhamos as etapas básicas para instalação em qualquer sistema.
+### Without Docker
 
-1. Primeiro, transfira o arquivo para o seu servidor web usando o método que você preferir (ftp, scp, etc).
+Below we detail the basic steps for installation on any system.
 
-Você precisará fazer telnet/ssh na máquina servidora para as próximas etapas.
+1. First, transfer the file to your web server using your preferred method (ftp, scp, etc).
 
-2. Em seguida, descompacte-o no diretório desejado.
+You will need to telnet/ssh into the server machine for the next steps.
 
-O comando usual é:
+2. Then unzip it to the desired directory.
 
-`
-tar zxvf <filename.tar.gz>
-`
+The usual command is: `tar zxvf <filename.tar.gz>`
 
-Neste ponto, você pode querer renomear o diretório para algo diferente de 'testmanager'.
+At this point, you may want to rename the directory to something other than 'test-manager'.
 
-3. Inicie o instalador web
-Criaremos as tabelas de banco de dados necessárias e um arquivo de configuração básico.
-No seu servidor web, acesse http://seusite/testmanager/ ou URL similar e siga as instruções.
+3. Launch the web installer
+We'll create the necessary database tables and a basic configuration file.
+On your web server, go to http://yoursite/ or a similar URL and follow the instructions.

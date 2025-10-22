@@ -16,4 +16,16 @@
     <button type="submit" class="btn btn-danger">Delete</button>
     <a href="{{ url_for('project.index') }}" class="btn btn-secondary">Back to List</a>
 </form>
+<div class="d-flex mt-3">
+    <form class="p-1" action="{{ url_for('project.select') }}" method="post">
+        <input type="hidden" name="project_id" value="{{ project.id }}">
+        <input type="hidden" name="next" value="{{ url_for('requirement.index', project_id=project.id) }}">
+        <button type="submit" class="btn btn-info">View Requirements</button>
+    </form>
+    <form class="p-1" action="{{ url_for('project.select') }}" method="post">
+        <input type="hidden" name="project_id" value="{{ project.id }}">
+        <input type="hidden" name="next" value="{{ url_for('testcase.index', project_id=project.id) }}">
+        <button type="submit" class="btn btn-info">View Test Cases</button>
+    </form>
+</div>
 {% endblock %}

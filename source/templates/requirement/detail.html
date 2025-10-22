@@ -7,9 +7,8 @@
 
 <p><strong>ID:</strong> {{ requirement.code_with_prefix }}</p>
 <p><strong>Title:</strong> {{ requirement.title }}</p>
-<p><strong>Description:</strong> {{ requirement.description }}</p>
+<p><strong>Description:</strong> {{ requirement.description | replace('\n','<br/>') | safe }}</p>
 <p><strong>Priority:</strong> {{ requirement.priority }}</p>
-<p><strong>Status:</strong> {{ requirement.status }}</p>
 <p><strong>Created At:</strong> {{ requirement.created_at | format_datetime }}</p>
 <p><strong>Updated At:</strong> {{ requirement.updated_at | format_datetime }}</p>
 
