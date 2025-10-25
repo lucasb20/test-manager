@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Member Edit{% endblock %}
+
+{% block content %}
+<h2>Edit Member</h2>
+
+<form action="{{ url_for('member.edit', member_id=member.id) }}" method="post">
+    <div class="mb-3">
+        <label for="member" class="form-label">Name:</label>
+        <input type="text" name="member" id="member" class="form-control" value="{{ member.name }}" disabled>
+    </div>
+    <div class="mb-3">
+        <label for="project" class="form-label">Project:</label>
+        <input type="text" name="project" id="project" class="form-control" value="{{ g.project.name }}" disabled>
+    </div>
+    <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select class="form-select" id="role" name="role" required>
+            <option value="viewer" {% if member.role == 'viewer' %}selected{% endif %}>Viewer</option>
+            <option value="editor" {% if member.role == 'editor' %}selected{% endif %}>Editor</option>
+            <option value="manager" {% if member.role == 'manager' %}selected{% endif %}>Manager</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a href="{{ url_for('member.detail', member_id=member.id) }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

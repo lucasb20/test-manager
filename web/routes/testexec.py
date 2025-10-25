@@ -1,13 +1,13 @@
 from flask import Blueprint, request, render_template, redirect, url_for, g, flash, Response
 from db import db, TestExecution, TestResult, TestCase, TestPlanCase, TestPlan
-from decorators import admin_required
+from decorators import perm_to_view_required, perm_to_edit_required
 from utils import create_csv
 
 
 bp = Blueprint('testexec', __name__, url_prefix='/testexec')
 
 @bp.route('/<int:testplan_id>', methods=['GET', 'POST'])
-@admin_required
+@perm_to_view_required
 def index(testplan_id):
     testplancases = db.session.execute(
         db.select(TestPlanCase).filter_by(test_plan_id=testplan_id).order_by(TestPlanCase.order)
@@ -18,7 +18,7 @@ def index(testplan_id):
     return render_template('testexec/index.html', testplancases=testplancases, testplan_id=testplan_id)
 
 @bp.route('/<int:testplan_id>/create', methods=['GET'])
-@admin_required
+@perm_to_edit_required
 def create(testplan_id):
     testcases = db.session.execute(
         db.select(TestCase.id).join(TestPlanCase).filter(TestPlanCase.test_plan_id == testplan_id)
@@ -32,7 +32,7 @@ def create(testplan_id):
     return redirect(url_for('testexec.run_case', testexec_id=testexec.id, index=0))
 
 @bp.route('/select', methods=['GET'])
-@admin_required
+@perm_to_view_required
 def select():
     testplans = db.session.execute(
         db.select(TestPlan)
@@ -40,7 +40,7 @@ def select():
     return render_template('testexec/select.html', testplans=testplans)
 
 @bp.route('/<int:testplan_id>/previous', methods=['GET'])
-@admin_required
+@perm_to_view_required
 def previous(testplan_id):
     testexecs = db.session.execute(
         db.select(TestExecution).filter_by(test_plan_id=testplan_id).order_by(TestExecution.created_at.desc())
@@ -48,7 +48,7 @@ def previous(testplan_id):
     return render_template('testexec/previous.html', testexecs=testexecs, testplan_id=testplan_id)
 
 @bp.route('/<int:testexec_id>/delete', methods=['POST'])
-@admin_required
+@perm_to_edit_required
 def delete(testexec_id):
     testresults = db.session.execute(
         db.select(TestResult).filter_by(test_execution_id=testexec_id)
@@ -62,7 +62,7 @@ def delete(testexec_id):
     return redirect(url_for('testexec.previous', testplan_id=testplan_id))
 
 @bp.route('/<int:testexec_id>/<int:index>', methods=['GET', 'POST'])
-@admin_required
+@perm_to_edit_required
 def run_case(testexec_id, index):
     testexec = db.get_or_404(TestExecution, testexec_id)
     if testexec.status == 'finished':
@@ -91,7 +91,7 @@ def run_case(testexec_id, index):
     return render_template('testexec/run_case.html', testexec=testexec, testcase=testcase, index=index, total=len(testcases))
 
 @bp.route('/<int:testexec_id>/summary', methods=['GET'])
-@admin_required
+@perm_to_view_required
 def summary(testexec_id):
     testexec = db.get_or_404(TestExecution, testexec_id)
     results = db.session.execute(
@@ -104,7 +104,7 @@ def summary(testexec_id):
     return render_template('testexec/summary.html', testexec=testexec, results=results, total_tests=total_tests, passed_tests=passed_tests, failed_tests=failed_tests, skipped_tests=skipped_tests)
 
 @bp.route('/change_order/<int:testplan_id>/<int:testplancase_id1>/<int:testplancase_id2>', methods=['POST'])
-@admin_required
+@perm_to_edit_required
 def change_order(testplan_id, testplancase_id1, testplancase_id2):
     testplancase1 = db.get_or_404(TestPlanCase, testplancase_id1)
     testplancase2 = db.get_or_404(TestPlanCase, testplancase_id2)
@@ -113,6 +113,7 @@ def change_order(testplan_id, testplancase_id1, testplancase_id2):
     return redirect(url_for('testexec.index', testplan_id=testplan_id))
 
 @bp.route('/<int:testexec_id>/export', methods=['GET'])
+@perm_to_view_required
 def export(testexec_id):
     testexec = db.get_or_404(TestExecution, testexec_id)
     testplan = db.session.get(TestPlan, testexec.test_plan_id)

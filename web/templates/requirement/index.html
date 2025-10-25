@@ -6,9 +6,9 @@
 <h2>Requirements</h2>
 
 <div class="mb-3"></div>
-    <a href="{{ url_for('requirement.reorder') }}" class="btn btn-secondary">Reorder Requirements</a>
-    <a href="{{ url_for('project.select', next=url_for('requirement.index')) }}" class="btn btn-secondary">Select Project</a>
     <a href="{{ url_for('requirement.create') }}" class="btn btn-primary">Create Requirement</a>
+    <a href="{{ url_for('project.select', next=url_for('requirement.index')) }}" class="btn btn-secondary">Select Project</a>
+    <a href="{{ url_for('requirement.reorder') }}" class="btn btn-secondary">Reorder Requirements</a>
 </div>
 
 {% if requirements %}

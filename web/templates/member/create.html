@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Create Member{% endblock %}
+
+{% block content %}
+<h2>Add New Member to {{ g.project.name }}</h2>
+
+<form method="post" action="{{ url_for('member.create') }}">
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="text" class="form-control" id="email" name="email" required>
+    </div>
+    <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select id="role" name="role" class="form-select" required>
+            <option value="" disabled selected>Select permission</option>
+            <option value="viewer">Viewer</option>
+            <option value="editor">Editor</option>
+            <option value="manager">Manager</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Member</button>
+    <a href="{{ url_for('member.index') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

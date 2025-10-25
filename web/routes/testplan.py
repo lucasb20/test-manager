@@ -1,12 +1,12 @@
 from flask import Blueprint, render_template, request, redirect, url_for, g
 from db import db, TestPlan, TestCase, TestPlanCase
-from decorators import admin_required
+from decorators import perm_to_view_required, perm_to_edit_required
 
 
 bp = Blueprint('testplan', __name__, url_prefix='/testplan')
 
 @bp.route('/')
-@admin_required
+@perm_to_view_required
 def index():
     if not g.project:
         return redirect(url_for('project.select', next=url_for('testplan.index')))
@@ -16,18 +16,18 @@ def index():
     return render_template('testplan/index.html', testplans=testplans)
 
 @bp.route('/<int:testplan_id>')
-@admin_required
+@perm_to_view_required
 def detail(testplan_id):
     testplan = db.get_or_404(TestPlan, testplan_id)
     testcases = db.session.execute(
         db.select(TestCase).join(TestPlanCase).filter(
             TestPlanCase.test_plan_id == testplan_id
-        )
+        ).order_by(TestPlanCase.order.asc())
     ).scalars().all()
     return render_template('testplan/detail.html', testplan=testplan, testcases=testcases)
 
 @bp.route('/create', methods=['GET', 'POST'])
-@admin_required
+@perm_to_edit_required
 def create():
     if request.method == 'POST':
         name = request.form['name']
@@ -41,7 +41,7 @@ def create():
     return render_template('testplan/create.html')
 
 @bp.route('/<int:testplan_id>/edit', methods=['GET', 'POST'])
-@admin_required
+@perm_to_edit_required
 def edit(testplan_id):
     testplan = db.get_or_404(TestPlan, testplan_id)
     if request.method == 'POST':
@@ -54,7 +54,7 @@ def edit(testplan_id):
     return render_template('testplan/edit.html', testplan=testplan)
 
 @bp.route('/<int:testplan_id>/delete', methods=['POST'])
-@admin_required
+@perm_to_edit_required
 def delete(testplan_id):
     testplan = db.get_or_404(TestPlan, testplan_id)
     db.session.delete(testplan)
@@ -62,7 +62,7 @@ def delete(testplan_id):
     return redirect(url_for('testplan.index'))
 
 @bp.route('/<int:testplan_id>/associate', methods=['GET', 'POST'])
-@admin_required
+@perm_to_edit_required
 def associate(testplan_id):
     testcases = db.session.execute(
         db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())

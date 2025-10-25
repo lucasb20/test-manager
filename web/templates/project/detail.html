@@ -3,9 +3,9 @@
 {% block title %}Projects{% endblock %}
 
 {% block content %}
-<h2>Project</h2>
+<h2>Project {{ project.name }}</h2>
 
-<p><strong>Project name:</strong> {{ project.name }}</p>
+<p><strong>Name:</strong> {{ project.name }}</p>
 <p><strong>Description:</strong> {{ project.description }}</p>
 <p><strong>Manager:</strong> {{ manager.name }}</p>
 <p><strong>Created at:</strong> {{ project.created_at | format_datetime }}</p>
@@ -26,6 +26,11 @@
         <input type="hidden" name="project_id" value="{{ project.id }}">
         <input type="hidden" name="next" value="{{ url_for('testcase.index', project_id=project.id) }}">
         <button type="submit" class="btn btn-info">View Test Cases</button>
+    </form>
+    <form class="p-1" action="{{ url_for('project.select') }}" method="post">
+        <input type="hidden" name="project_id" value="{{ project.id }}">
+        <input type="hidden" name="next" value="{{ url_for('member.index', project_id=project.id) }}">
+        <button type="submit" class="btn btn-info">View Members</button>
     </form>
 </div>
 {% endblock %}

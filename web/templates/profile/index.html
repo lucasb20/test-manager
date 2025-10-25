@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<h2>{{ user.name }}'s Profile</h2>
+<p>Name: {{ user.name }}</p>
+<p>Email: {{ user.email }}</p>
+{% if user.is_admin %}
+<p>Status: Administrator</p>
+{% else %}
+<p>Status: Regular User</p>
+{% endif %}
+<p>Created at: {{ user.created_at | format_datetime }}</p>
+
+<a href="{{ url_for('profile.edit') }}" class="btn btn-secondary">Edit Profile</a>
+<a href="{{ url_for('profile.reset_password') }}" class="btn btn-secondary">Reset Password</a>
+<a href="{{ url_for('auth.logout') }}" class="btn btn-warning">Logout</a>
+{% endblock %}

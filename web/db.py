@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime
+from utils import code_with_prefix
 
 
 class Base(DeclarativeBase):
@@ -29,6 +30,21 @@ class ProjectMember(db.Model):
     project_id = db.Column(db.ForeignKey('project.id'))
     user_id = db.Column(db.ForeignKey('user.id'))
     role = db.Column(db.String(50))
+    joined_at = db.Column(db.DateTime, default=datetime.now)
+
+    @property
+    def name(self):
+        name = db.session.execute(
+            db.select(User.name).filter_by(id=self.user_id)
+        ).scalar()
+        return name or "Unknown"
+
+    @property
+    def email(self):
+        email = db.session.execute(
+            db.select(User.email).filter_by(id=self.user_id)
+        ).scalar()
+        return email or "Unknown"
 
 class Requirement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,11 +54,18 @@ class Requirement(db.Model):
     priority = db.Column(db.String(50))
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now)
 
     @property
     def code_with_prefix(self):
-        return f"REQ-{self.order:03d}"
+        return code_with_prefix("REQ", self.order)
+
+    @property
+    def last_order(self):
+        last_req_order = db.session.execute(
+            db.select(Requirement.order).filter_by(project_id=self.project_id).order_by(Requirement.order.desc())
+        ).scalars().first()
+        return last_req_order or 0
 
 class TestCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,18 +76,25 @@ class TestCase(db.Model):
     project_id = db.Column(db.ForeignKey('project.id'))
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now)
 
     @property
     def code_with_prefix(self):
-        return f"TC-{self.order:03d}"
+        return code_with_prefix("TC", self.order)
 
     @property
     def requirements_codes(self):
-        reqs = db.session.execute(
-            db.select(Requirement).join(RequirementTestCase).filter(RequirementTestCase.test_case_id == self.id)
+        reqs_orders = db.session.execute(
+            db.select(Requirement.order).join(RequirementTestCase).filter(RequirementTestCase.test_case_id == self.id)
         ).scalars().all()
-        return ', '.join([req.code_with_prefix for req in reqs])
+        return ', '.join([code_with_prefix("REQ", order) for order in reqs_orders])
+
+    @property
+    def last_order(self):
+        last_tc_order = db.session.execute(
+            db.select(TestCase.order).filter_by(project_id=self.project_id).order_by(TestCase.order.desc())
+        ).scalars().first()
+        return last_tc_order or 0
 
 class RequirementTestCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -99,8 +129,10 @@ class TestExecution(db.Model):
 
     @property
     def name(self):
-        name = db.session.get(TestPlan, self.test_plan_id).name
-        return name if name else "Unnamed Test Plan"
+        name = db.session.execute(
+            db.select(TestPlan.name).filter_by(id=self.test_plan_id)
+        ).scalar()
+        return name or "Unnamed Test Plan"
 
     @property
     def next_case(self):
@@ -119,13 +151,17 @@ class TestResult(db.Model):
 
     @property
     def test_case_code(self):
-        test_case = db.session.get(TestCase, self.test_case_id)
-        return test_case.code_with_prefix if test_case else "Unknown"
+        test_case = db.session.execute(
+            db.select(TestCase.order).filter_by(id=self.test_case_id)
+        ).scalar()
+        return code_with_prefix("TC", test_case) if test_case else "Unknown"
 
     @property
     def executor(self):
-        user = db.session.get(User, self.executed_by)
-        return user.name if user else "Unknown"
+        name = db.session.execute(
+            db.select(User.name).filter_by(id=self.executed_by)
+        ).scalar()
+        return name or "Unknown"
 
 class AISuggestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)

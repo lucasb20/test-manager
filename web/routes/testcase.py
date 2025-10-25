@@ -1,23 +1,22 @@
 from flask import Blueprint, render_template, request, redirect, url_for, g, flash, Response
 from db import db, TestCase, Requirement, RequirementTestCase
-from decorators import admin_required
+from decorators import perm_to_view_required, perm_to_edit_required
 from utils import create_csv
+from datetime import datetime
 
 
 bp = Blueprint('testcase', __name__, url_prefix='/testcase')
 
 @bp.route('/')
-@admin_required
+@perm_to_view_required
 def index():
-    if not g.project:
-        return redirect(url_for('project.select', next=url_for('testcase.index')))
     testcases = db.session.execute(
         db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
     ).scalars().all()
     return render_template('testcase/index.html', testcases=testcases)
 
 @bp.route('/<int:testcase_id>')
-@admin_required
+@perm_to_view_required
 def detail(testcase_id):
     testcase = db.get_or_404(TestCase, testcase_id)
     requirements = db.session.execute(
@@ -26,7 +25,7 @@ def detail(testcase_id):
     return render_template('testcase/detail.html', testcase=testcase, requirements=requirements)
 
 @bp.route('/<int:testcase_id>/edit', methods=['GET', 'POST'])
-@admin_required
+@perm_to_edit_required
 def edit(testcase_id):
     testcase = db.get_or_404(TestCase, testcase_id)
     if request.method == 'POST':
@@ -34,12 +33,13 @@ def edit(testcase_id):
         testcase.preconditions = request.form['preconditions']
         testcase.steps = request.form['steps']
         testcase.expected_result = request.form['expected_result']
+        testcase.updated_at = datetime.now()
         db.session.commit()
         return redirect(url_for('testcase.detail', testcase_id=testcase.id))
     return render_template('testcase/edit.html', testcase=testcase)
 
 @bp.route('/create', methods=['GET', 'POST'])
-@admin_required
+@perm_to_edit_required
 def create():
     if request.method == 'POST':
         title = request.form['title']
@@ -47,14 +47,15 @@ def create():
         steps = request.form['steps']
         expected_result = request.form['expected_result']
         testcase = TestCase(title=title, preconditions=preconditions, steps=steps, expected_result=expected_result, project_id=g.project.id)
+        testcase.order = testcase.last_order + 1
         db.session.add(testcase)
         db.session.commit()
-        flash('Test case created successfully. Reorder test cases to set its position.')
-        return redirect(url_for('testcase.detail', testcase_id=testcase.id))
+        flash(f'{testcase.code_with_prefix} created successfully.')
+        return redirect(url_for('testcase.index'))
     return render_template('testcase/create.html')
 
 @bp.route('/<int:testcase_id>/delete', methods=['POST'])
-@admin_required
+@perm_to_edit_required
 def delete(testcase_id):
     testcase = db.get_or_404(TestCase, testcase_id)
     db.session.delete(testcase)
@@ -62,7 +63,7 @@ def delete(testcase_id):
     return redirect(url_for('testcase.index'))
 
 @bp.route('/reorder', methods=['GET'])
-@admin_required
+@perm_to_edit_required
 def reorder():
     testcases = db.session.execute(
         db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
@@ -73,7 +74,7 @@ def reorder():
     return render_template('testcase/reorder.html', testcases=testcases)
 
 @bp.route('/<int:testcase_id1>/<int:testcase_id2>', methods=['POST'])
-@admin_required
+@perm_to_edit_required
 def change_order(testcase_id1, testcase_id2):
     testcase1 = db.get_or_404(TestCase, testcase_id1)
     testcase2 = db.get_or_404(TestCase, testcase_id2)
@@ -82,7 +83,7 @@ def change_order(testcase_id1, testcase_id2):
     return redirect(url_for('testcase.reorder'))
 
 @bp.route('/<int:testcase_id>/associate', methods=['GET', 'POST'])
-@admin_required
+@perm_to_edit_required
 def associate(testcase_id):
     testcase = db.get_or_404(TestCase, testcase_id)
     requirements = db.session.execute(
@@ -106,7 +107,7 @@ def associate(testcase_id):
     return render_template('testcase/associate.html', testcase=testcase, requirements=requirements, associated_ids=associated_ids)
 
 @bp.route('/export', methods=['GET'])
-@admin_required
+@perm_to_view_required
 def export():
     testcases = db.session.execute(
         db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())

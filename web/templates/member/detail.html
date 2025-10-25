@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Member Detail{% endblock %}
+
+{% block content %}
+<h2>Member Detail</h2>
+
+<p><strong>Name:</strong> {{ member.name }}</p>
+<p><strong>Email:</strong> {{ member.email }}</p>
+<p><strong>Role:</strong> {{ member.role | capitalize }} on {{ g.project.name }}</p>
+<p><strong>Joined At:</strong> {{ member.joined_at | format_datetime }}</p>
+
+<form action="{{ url_for('member.delete', member_id=member.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this member?');">
+    <a href="{{ url_for('member.edit', member_id=member.id) }}" class="btn btn-secondary">Edit</a>
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a href="{{ url_for('member.index') }}" class="btn btn-secondary">Back to List</a>
+</form>
+
+{% endblock %}

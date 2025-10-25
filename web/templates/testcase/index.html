@@ -6,34 +6,34 @@
 <h2>Test Cases</h2>
 
 <div class="mb-3">
-    <a href="{{ url_for('testcase.reorder') }}" class="btn btn-secondary">Reorder Test Cases</a>
-    <a href="{{ url_for('project.select', next=url_for('testcase.index')) }}" class="btn btn-secondary">Select Project</a>
     <a href="{{ url_for('testcase.create') }}" class="btn btn-primary">Create New Test Case</a>
-    <a href="{{ url_for('testcase.export') }}" class="btn btn-secondary">Export CSV</a>
+    <a href="{{ url_for('project.select', next=url_for('testcase.index')) }}" class="btn btn-secondary">Select Project</a>
+    <a href="{{ url_for('testcase.reorder') }}" class="btn btn-secondary">Reorder Test Cases</a>
+    <a href="{{ url_for('testcase.export') }}" class="btn btn-info">Export CSV</a>
 </div>
 
 {% if testcases %}
 <table class="table">
     <thead class="table-dark table-striped table-bordered mt-3">
         <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Title</th>
-            <th scope="col">Preconditions</th>
-            <th scope="col">Steps</th>
-            <th scope="col">Expected Result</th>
-            <th scope="col">Created At</th>
-            <th scope="col">Updated At</th>
+            <th>ID</th>
+            <th>Requirements</th>
+            <th>Title</th>
+            <th>Preconditions</th>
+            <th>Steps</th>
+            <th>Expected Result</th>
+            <th>Last Update</th>
         </tr>
     </thead>
     <tbody>
         {% for testcase in testcases %}
         <tr>
             <td>{{ testcase.code_with_prefix }}</td>
+            <td>{{ testcase.requirements_codes }}</td>
             <td><a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}">{{ testcase.title }}</a></td>
             <td>{{ testcase.preconditions }}</td>
             <td>{{ testcase.steps }}</td>
             <td>{{ testcase.expected_result }}</td>
-            <td>{{ testcase.created_at | format_datetime }}</td>
             <td>{{ testcase.updated_at | format_datetime }}</td>
         </tr>
         {% endfor %}

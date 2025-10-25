@@ -6,6 +6,9 @@ from io import StringIO
 import csv
 
 
+def code_with_prefix(prefix, order):
+    return f"{prefix}-{order:03d}"
+
 def send_email(to, subject, body):
     msg = MIMEText(body)
     msg['Subject'] = subject
@@ -33,8 +36,7 @@ def format_datetime(dt):
     return dt.strftime("%d/%m/%Y %H:%M")
 
 def database_uri(database="example", user="root", password_file=None, host="db", port=3306):
-    pf = open(password_file, 'r')
-    password = pf.read()
+    password = open(password_file, 'r').read()
     return f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4"
 
 def create_csv(data):

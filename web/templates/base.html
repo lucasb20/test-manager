@@ -12,12 +12,12 @@
       <nav>
         <ul class="nav">
           {% if g.user %}
-            <li class="nav-item"><a href="{{ url_for('requirement.index') }}" class="nav-link">Requirements</a></li>
-            <li class="nav-item"><a href="{{ url_for('testexec.select') }}" class="nav-link">Test Executions</a></li>
-            <li class="nav-item"><a href="{{ url_for('testplan.index') }}" class="nav-link">Test Plans</a></li>
-            <li class="nav-item"><a href="{{ url_for('testcase.index') }}" class="nav-link">Test Cases</a></li>
+          <li class="nav-item"><a href="{{ url_for('testexec.select') }}" class="nav-link">Test Executions</a></li>
+          <li class="nav-item"><a href="{{ url_for('testplan.index') }}" class="nav-link">Test Plans</a></li>
+          <li class="nav-item"><a href="{{ url_for('testcase.index') }}" class="nav-link">Test Cases</a></li>
+          <li class="nav-item"><a href="{{ url_for('requirement.index') }}" class="nav-link">Requirements</a></li>
             <li class="nav-item"><a href="{{ url_for('project.index') }}" class="nav-link">Projects</a></li>
-            <li class="nav-item"><span class="btn">{{ g.user.name }}</span></li>
+            <li class="nav-item"><a href="{{ url_for('profile.index') }}" class="btn">{{ g.user.name }}</a></li>
             <li class="nav-item"><a href="{{ url_for('auth.logout') }}" class="nav-link">Log Out</a></li>
           {% else %}
             <li class="nav-item"><a href="{{ url_for('auth.register') }}" class="nav-link">Register</a></li>
