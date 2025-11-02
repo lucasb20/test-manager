@@ -3,25 +3,26 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %} - TestManager</title>
+    <title>TestManager</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body class="bg-light">
-    <header class="d-flex justify-content-between align-items-center p-3 bg-white mb-4">
-      <h1><a href="{{ url_for('index') }}" class="text-decoration-none">TestManager</a></h1>
+    <header class="d-flex justify-content-between align-items-center p-3 bg-primary mb-4">
+      <h1><a href="{{ url_for('index') }}" class="navbar-brand text-bg-primary">TestManager</a></h1>
       <nav>
-        <ul class="nav">
+        <ul class="nav nav-underline">
           {% if g.user %}
-          <li class="nav-item"><a href="{{ url_for('testexec.select') }}" class="nav-link">Test Executions</a></li>
-          <li class="nav-item"><a href="{{ url_for('testplan.index') }}" class="nav-link">Test Plans</a></li>
-          <li class="nav-item"><a href="{{ url_for('testcase.index') }}" class="nav-link">Test Cases</a></li>
-          <li class="nav-item"><a href="{{ url_for('requirement.index') }}" class="nav-link">Requirements</a></li>
-            <li class="nav-item"><a href="{{ url_for('project.index') }}" class="nav-link">Projects</a></li>
-            <li class="nav-item"><a href="{{ url_for('profile.index') }}" class="btn">{{ g.user.name }}</a></li>
-            <li class="nav-item"><a href="{{ url_for('auth.logout') }}" class="nav-link">Log Out</a></li>
+          <li class="nav-item"><a href="{{ url_for('testexec.select') }}" class="nav-link text-light">Test Executions</a></li>
+          <li class="nav-item"><a href="{{ url_for('testplan.index') }}" class="nav-link text-light">Test Plans</a></li>
+          <li class="nav-item"><a href="{{ url_for('testcase.index') }}" class="nav-link text-light">Test Cases</a></li>
+          <li class="nav-item"><a href="{{ url_for('requirement.index') }}" class="nav-link text-light">Requirements</a></li>
+            <li class="nav-item"><a href="{{ url_for('project.index') }}" class="nav-link text-light">Projects</a></li>
+            <li class="nav-item"><a href="{{ url_for('profile.index') }}" class="btn btn-outline-light">{{ g.user.name }}</a></li>
+            <li class="nav-item"><a href="{{ url_for('auth.logout') }}" class="nav-link text-warning">Log Out</a></li>
           {% else %}
-            <li class="nav-item"><a href="{{ url_for('auth.register') }}" class="nav-link">Register</a></li>
-            <li class="nav-item"><a href="{{ url_for('auth.login') }}" class="nav-link">Log In</a></li>
+            <li class="nav-item"><a href="{{ url_for('auth.register') }}" class="nav-link text-light">Register</a></li>
+            <li class="nav-item"><a href="{{ url_for('auth.login') }}" class="nav-link text-light">Log In</a></li>
           {% endif %}
         </ul>
       </nav>

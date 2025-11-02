@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
 
-{% block title %}Test Case{% endblock %}
-
 {% block content %}
 <h2>Test Case Edit</h2>
 <form method="post">
@@ -20,6 +18,17 @@
     <div class="mb-3">
         <label for="expected_result" class="form-label">Expected Result</label>
         <input type="text" name="expected_result" id="expected_result" class="form-control" value="{{ testcase.expected_result }}">
+    </div>
+    <div class="mb-3">
+        <label for="functional" class="form-label">Type</label>
+        <select name="functional" id="functional" class="form-select" required>
+            <option value="functional" {% if testcase.is_functional %}selected{% endif %}>Functional</option>
+            <option value="non-functional" {% if not testcase.is_functional %}selected{% endif %}>Non-Functional</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <input type="checkbox" name="automation" id="automation" class="form-check-input" {% if testcase.is_automated %}checked{% endif %}>
+        <label for="automation" class="form-check-label">Automated</label>
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="btn btn-secondary">Cancel</a>

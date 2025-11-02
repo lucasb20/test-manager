@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, g, flash, Response
 from db import db, TestCase, Requirement, RequirementTestCase
 from decorators import perm_to_view_required, perm_to_edit_required
-from utils import create_csv
-from datetime import datetime
+from utils import create_csv, normalize_steps
+from datetime import datetime, date
 
 
 bp = Blueprint('testcase', __name__, url_prefix='/testcase')
@@ -31,8 +31,10 @@ def edit(testcase_id):
     if request.method == 'POST':
         testcase.title = request.form['title']
         testcase.preconditions = request.form['preconditions']
-        testcase.steps = request.form['steps']
+        testcase.steps = normalize_steps(request.form['steps'])
         testcase.expected_result = request.form['expected_result']
+        testcase.is_functional = request.form['functional'] == 'functional'
+        testcase.is_automated = request.form.get('automation') == 'on'
         testcase.updated_at = datetime.now()
         db.session.commit()
         return redirect(url_for('testcase.detail', testcase_id=testcase.id))
@@ -44,9 +46,11 @@ def create():
     if request.method == 'POST':
         title = request.form['title']
         preconditions = request.form['preconditions']
-        steps = request.form['steps']
+        steps = normalize_steps(request.form['steps'])
         expected_result = request.form['expected_result']
-        testcase = TestCase(title=title, preconditions=preconditions, steps=steps, expected_result=expected_result, project_id=g.project.id)
+        functional = request.form['functional'] == 'functional'
+        automation = request.form['automation'] == 'on'
+        testcase = TestCase(title=title, preconditions=preconditions, steps=steps, expected_result=expected_result, project_id=g.project.id, is_functional=functional, is_automated=automation)
         testcase.order = testcase.last_order + 1
         db.session.add(testcase)
         db.session.commit()
@@ -112,13 +116,14 @@ def export():
     testcases = db.session.execute(
         db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
     ).scalars().all()
-    data = [("ID", "Title", "Requirements", "Preconditions", "Steps", "Expected Result")]
+    data = [("ID", "Title", "Requirements", "Preconditions", "Steps", "Expected Result", "Type", "Automated")]
     for tc in testcases:
-        data.append((tc.code_with_prefix, tc.title, tc.requirements_codes, tc.preconditions, tc.steps, tc.expected_result))
+        data.append((tc.code_with_prefix, tc.title, tc.requirements_codes, tc.preconditions, tc.steps, tc.expected_result, tc.functional, tc.automation))
     csv_data = create_csv(data)
+    filename = f"testcases_{g.project.name.casefold()}_{date.today()}.csv"
     response = Response(
         csv_data,
         mimetype='text/csv',
-        headers={"Content-disposition": "attachment; filename=testcases.csv"}
+        headers={"Content-disposition": f"attachment; filename={filename}"}
     )
     return response

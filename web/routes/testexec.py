@@ -132,9 +132,10 @@ def export(testexec_id):
             result.notes
         ))
     csv_data = create_csv(data)
+    filename = f"testexec_{testexec.name.casefold()}.csv"
     response = Response(
         csv_data,
         mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=testexec.csv"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
     return response

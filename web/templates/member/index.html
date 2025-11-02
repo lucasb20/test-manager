@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Members{% endblock %}
-
 {% block content %}
 <h2>Members List - {{ g.project.name }}</h2>
 
 <div class="mb-3">
     <a href="{{ url_for('member.create') }}" class="btn btn-primary">Add New Member</a>
-    <a href="{{ url_for('project.index') }}" class="btn btn-secondary">Back to List</a>
+    <a href="{{ url_for('project.detail', project_id=g.project.id) }}" class="btn btn-secondary">Back to Project</a>
 </div>
 
 <table class="table">

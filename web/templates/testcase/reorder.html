@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
 
-{% block title %}Test Cases{% endblock %}
-
 {% block content %}
 <h2>Reorder Test Cases</h2>
 
@@ -13,6 +11,7 @@
     <thead class="table-dark table-striped table-bordered">
         <tr>
             <th>Order</th>
+            <th>Requirements</th>
             <th>Title</th>
             <th>Action</th>
         </tr>
@@ -21,6 +20,7 @@
         {% for testcase in testcases %}
         <tr>
             <td>{{ loop.index }}</td>
+            <td>{{ testcase.requirements_codes }}</td>
             <td>{{ testcase.title }}</td>
             <td>
                 {% if loop.index > 1 %}

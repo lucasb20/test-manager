@@ -4,6 +4,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from io import StringIO
 import csv
+import re
 
 
 def code_with_prefix(prefix, order):
@@ -47,3 +48,17 @@ def create_csv(data):
         writer.writerow(row)
 
     return output.getvalue()
+
+def normalize_steps(steps):
+    rows = re.sub(r'^\s*\d+[\.\-\)]?\s*', '', steps, flags=re.MULTILINE)
+
+    rows = [row.strip() for row in rows.splitlines() if row.strip()]
+
+    norm_steps = []
+    for i, row in enumerate(rows, 1):
+        row = re.sub(r'[\.\s,]+$', '', row).strip()
+        if not re.search(r'[\.\?\!]$', row):
+            row += '.'
+        norm_steps.append(f"{i}. {row}")
+
+    return "\n".join(norm_steps)

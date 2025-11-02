@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
 
-{% block title %}Requirement{% endblock %}
-
 {% block content %}
 <h2>Requirement</h2>
 
@@ -21,10 +19,11 @@
 
 {% if testcases %}
 <h3 class="mt-3">Associated Test Cases</h3>
-    <div class="list-group">
-    {% for testcase in testcases %}
-        <a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="list-group-item list-group-item-action">{{ testcase.code_with_prefix }} - {{ testcase.title }}</a>
-    {% endfor %}
-    </div>
+
+<div class="list-group">
+{% for testcase in testcases %}
+    <a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="list-group-item list-group-item-action">{{ testcase.code_with_prefix }} - {{ testcase.title }}</a>
+{% endfor %}
+</div>
 {% endif %}
 {% endblock %}

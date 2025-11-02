@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
 
-{% block title %}Requirements{% endblock %}
-
 {% block content %}
 <h2>Requirements</h2>
 
@@ -26,7 +24,7 @@
         {% for requirement in requirements %}
         <tr>
             <td>{{ requirement.code_with_prefix }}</td>
-            <td><a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}">{{ requirement.title }}</a></td>
+            <td><a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}" class="text-info">{{ requirement.title }}</a></td>
             <td>{{ requirement.priority }}</td>
             <td>{{ requirement.created_at | format_datetime }}</td>
             <td>{{ requirement.updated_at | format_datetime }}</td>

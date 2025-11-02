@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
 
-{% block title %}Log In{% endblock %}
-
 {% block content %}
 <form method="post">
   <div class="mb-3">
@@ -13,8 +11,8 @@
     <input type="password" name="password" id="password" class="form-control" required>
   </div>
   <div class="mb-3">
-    <a href="{{ url_for('auth.register') }}">Register</a>
-    <a href="{{ url_for('auth.reset_password') }}">Forgot Password?</a>
+    <a href="{{ url_for('auth.register') }}" class="link-primary">Register</a>
+    <a href="{{ url_for('auth.reset_password') }}" class="link-primary">Forgot Password?</a>
   </div>
   <button type="submit" class="btn btn-primary">Log In</button>
 </form>

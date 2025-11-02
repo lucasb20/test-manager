@@ -1,31 +1,58 @@
 {% extends 'base.html' %}
 
-{% block title %}Test Case{% endblock %}
-
 {% block content %}
 <h2>Test Case</h2>
 <form method="post">
     <div class="mb-3">
-        <label for="title" class="form-label">Title:</label>
-        <input type="text" name="title" class="form-control" required>
+        <label for="title" class="form-label">Title</label>
+        <input type="text" name="title" class="form-control" list="titles" autofocus required>
     </div>
     <div class="mb-3">
-        <label for="project" class="form-label">Project:</label>
+        <label for="project" class="form-label">Project</label>
         <input type="text" name="project" id="project" class="form-control" value="{{ g.project.name }}" disabled>
     </div>
     <div class="mb-3">
-        <label for="preconditions" class="form-label">Preconditions:</label>
-        <input type="text" name="preconditions" class="form-control" required>
+        <label for="preconditions" class="form-label">Preconditions</label>
+        <input type="text" name="preconditions" class="form-control" list="preconditions" required>
     </div>
     <div class="mb-3">
-        <label for="steps" class="form-label">Steps:</label>
+        <label for="steps" class="form-label">Steps</label>
         <textarea name="steps" class="form-control" required></textarea>
     </div>
     <div class="mb-3">
-        <label for="expected_result" class="form-label">Expected Result:</label>
-        <input type="text" name="expected_result" id="expected_result" class="form-control" required>
+        <label for="expected_result" class="form-label">Expected Result</label>
+        <input type="text" name="expected_result" id="expected_result" class="form-control" list="expected_results" required>
+    </div>
+    <div class="mb-3">
+        <label for="functional" class="form-label">Type</label>
+        <select name="functional" id="functional" class="form-select" required>
+            <option value="functional">Functional</option>
+            <option value="non-functional">Non-Functional</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <input type="checkbox" name="automation" id="automation" class="form-check-input">
+        <label for="automation" class="form-check-label">Automated</label>
     </div>
     <button type="submit" class="btn btn-primary">Create Test Case</button>
     <a href="{{ url_for('testcase.index') }}" class="btn btn-secondary">Back to List</a>
 </form>
+
+<datalist id="titles">
+    {% for title in g.project.testcases_titles %}
+    <option value="{{ title }}">
+    {% endfor %}
+</datalist>
+
+<datalist id="preconditions">
+    {% for precondition in g.project.testcases_preconditions %}
+    <option value="{{ precondition }}">
+    {% endfor %}
+</datalist>
+
+<datalist id="expected_results">
+    {% for expected_result in g.project.testcases_expected_results %}
+    <option value="{{ expected_result }}">
+    {% endfor %}
+</datalist>
 {% endblock %}

@@ -1,14 +1,32 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
-
 {% block content %}
-  <h2>Welcome to the Test Manager!</h2>
+<h2>Welcome to the Test Manager!</h2>
 
-  {% if g.user %}
-    <p>Hello, {{ g.user.name }}!</p>
-  {% else %}
-    <p>Please <a href="{{ url_for('auth.login') }}">log in</a> to manage your tests.</p>
-  {% endif %}
+{% if g.user %}
+<p>Hello, {{ g.user.name }}!</p>
+{% else %}
+<p>Please <a href="{{ url_for('auth.login') }}">log in</a> to manage your tests.</p>
+{% endif %}
 
+<div class="d-flex gap-3 text-center">
+  <div class="card text-white bg-primary" style="max-width: 20rem;">
+    <div class="card-body">
+      <h4 class="card-title"><a href="{{ url_for('requirement.index') }}" class="text-light">Requirements</a></h4>
+      <p class="card-text">Manage your requirements.</p>
+    </div>
+  </div>
+  <div class="card text-white bg-primary" style="max-width: 20rem;">
+    <div class="card-body">
+      <h4 class="card-title"><a href="{{ url_for('testcase.index') }}" class="text-light">Test Cases</a></h4>
+      <p class="card-text">Manage your test cases.</p>
+    </div>
+  </div>
+  <div class="card text-white bg-primary" style="max-width: 20rem;">
+    <div class="card-body">
+      <h4 class="card-title"><a href="{{ url_for('testplan.index') }}" class="text-light">Test Plans</a></h4>
+      <p class="card-text">Manage your test plans.</p>
+    </div>
+  </div>
+</div>
 {% endblock %}

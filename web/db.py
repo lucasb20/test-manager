@@ -13,23 +13,54 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
-    password = db.Column(db.String(200))
-    is_admin = db.Column(db.Boolean, default=False)
+    password = db.Column(db.String(200), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True)
+    name = db.Column(db.String(80), unique=True, nullable=False)
     description = db.Column(db.String(500), default=None)
     manager_id = db.Column(db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
+    @property
+    def manager(self):
+        manager = db.session.execute(
+            db.select(User.name).filter_by(id=self.manager_id)
+        ).scalar()
+        return manager or "Unassigned"
+
+    @property
+    def requirements_titles(self):
+        return db.session.execute(
+            db.select(Requirement.title).filter_by(project_id=self.id)
+        ).scalars()
+
+    @property
+    def testcases_titles(self):
+        return db.session.execute(
+            db.select(TestCase.title).filter_by(project_id=self.id)
+        ).scalars()
+
+    @property
+    def testcases_preconditions(self):
+        return db.session.execute(
+            db.select(TestCase.preconditions).filter_by(project_id=self.id).distinct()
+        ).scalars()
+
+    @property
+    def testcases_expected_results(self):
+        return db.session.execute(
+            db.select(TestCase.expected_result).filter_by(project_id=self.id).distinct()
+        ).scalars()
+
 class ProjectMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.ForeignKey('project.id'))
     user_id = db.Column(db.ForeignKey('user.id'))
-    role = db.Column(db.String(50))
+    role = db.Column(db.String(50), nullable=False)
     joined_at = db.Column(db.DateTime, default=datetime.now)
 
     @property
@@ -48,10 +79,10 @@ class ProjectMember(db.Model):
 
 class Requirement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200))
+    title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(500), default=None)
     project_id = db.Column(db.ForeignKey('project.id'))
-    priority = db.Column(db.String(50))
+    priority = db.Column(db.String(50), nullable=False)
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now)
@@ -69,10 +100,12 @@ class Requirement(db.Model):
 
 class TestCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200))
-    preconditions = db.Column(db.String(200))
-    steps = db.Column(db.String(500))
-    expected_result = db.Column(db.String(200))
+    title = db.Column(db.String(200), nullable=False)
+    preconditions = db.Column(db.String(200), nullable=False)
+    steps = db.Column(db.String(500), nullable=False)
+    expected_result = db.Column(db.String(200), nullable=False)
+    is_functional = db.Column(db.Boolean, nullable=False, default=True)
+    is_automated = db.Column(db.Boolean, nullable=False, default=False)
     project_id = db.Column(db.ForeignKey('project.id'))
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
@@ -96,6 +129,14 @@ class TestCase(db.Model):
         ).scalars().first()
         return last_tc_order or 0
 
+    @property
+    def functional(self):
+        return "Functional" if self.is_functional else "Non-Functional"
+
+    @property
+    def automation(self):
+        return "Yes" if self.is_automated else "No"
+
 class RequirementTestCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     requirement_id = db.Column(db.ForeignKey('requirement.id'))
@@ -103,7 +144,7 @@ class RequirementTestCase(db.Model):
 
 class TestPlan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200))
+    name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(500), default=None)
     project_id = db.Column(db.ForeignKey('project.id'))
     platform = db.Column(db.String(50))
@@ -162,9 +203,3 @@ class TestResult(db.Model):
             db.select(User.name).filter_by(id=self.executed_by)
         ).scalar()
         return name or "Unknown"
-
-class AISuggestion(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    requirement_id = db.Column(db.ForeignKey('requirement.id'))
-    suggestion = db.Column(db.String(200))
-    created_at = db.Column(db.DateTime, default=datetime.now)

@@ -1,13 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}Requirements{% endblock %}
-
 {% block content %}
 <h2>Requirements</h2>
 <form method="post">
     <div class="mb-3">
         <label for="title" class="form-label">Title:</label>
-        <input type="text" name="title" id="title" class="form-control">
+        <input type="text" name="title" id="title" class="form-control" list="titles" autofocus required>
     </div>
     <div class="mb-3">
         <label for="description" class="form-label">Description:</label>
@@ -23,4 +21,10 @@
     </div>
     <button type="submit" class="btn btn-primary">Create Requirement</button>
 </form>
+
+<datalist id="titles">
+    {% for title in g.project.requirements_titles %}
+    <option value="{{ title }}">
+    {% endfor %}
+</datalist>
 {% endblock %}

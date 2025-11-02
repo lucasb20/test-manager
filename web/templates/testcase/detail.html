@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
 
-{% block title %}Test Case{% endblock %}
-
 {% block content %}
 <h2>Test Case</h2>
 
@@ -10,6 +8,8 @@
 <p><strong>Preconditions:</strong> {{ testcase.preconditions }}</p>
 <p><strong>Steps:</strong> {{ testcase.steps | replace('\n','<br/>') | safe }}</p>
 <p><strong>Expected Result:</strong> {{ testcase.expected_result }}</p>
+<p><strong>Type:</strong> {{ testcase.functional }}</p>
+<p><strong>Automation:</strong> {{ testcase.automation }}</p>
 <p><strong>Created At:</strong> {{ testcase.created_at | format_datetime }}</p>
 <p><strong>Updated At:</strong> {{ testcase.updated_at | format_datetime }}</p>
 
@@ -22,10 +22,11 @@
 
 {% if requirements %}
 <h3 class="mt-3">Associated Requirements</h3>
-    <div class="list-group">
-    {% for requirement in requirements %}
-        <a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}" class="list-group-item list-group-item-action">{{ requirement.code_with_prefix }} - {{ requirement.title }}</a>
-    {% endfor %}
-    </div>
+
+<div class="list-group">
+{% for requirement in requirements %}
+    <a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}" class="list-group-item list-group-item-action">{{ requirement.code_with_prefix }} - {{ requirement.title }}</a>
+{% endfor %}
+</div>
 {% endif %}
 {% endblock %}

@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
 
-{% block title %}Test Cases{% endblock %}
-
 {% block content %}
 <h2>Test Cases</h2>
 
@@ -22,6 +20,8 @@
             <th>Preconditions</th>
             <th>Steps</th>
             <th>Expected Result</th>
+            <th>Type</th>
+            <th>Automation</th>
             <th>Last Update</th>
         </tr>
     </thead>
@@ -30,10 +30,12 @@
         <tr>
             <td>{{ testcase.code_with_prefix }}</td>
             <td>{{ testcase.requirements_codes }}</td>
-            <td><a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}">{{ testcase.title }}</a></td>
+            <td><a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="text-info">{{ testcase.title }}</a></td>
             <td>{{ testcase.preconditions }}</td>
             <td>{{ testcase.steps }}</td>
             <td>{{ testcase.expected_result }}</td>
+            <td>{{ testcase.functional }}</td>
+            <td>{{ testcase.automation }}</td>
             <td>{{ testcase.updated_at | format_datetime }}</td>
         </tr>
         {% endfor %}

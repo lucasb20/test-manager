@@ -37,8 +37,7 @@ def select():
 @login_required
 def detail(project_id):
     project = db.get_or_404(Project, project_id)
-    manager = db.get_or_404(User, project.manager_id)
-    return render_template('project/detail.html', project=project, manager=manager)
+    return render_template('project/detail.html', project=project)
 
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
