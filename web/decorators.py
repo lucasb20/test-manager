@@ -23,7 +23,7 @@ def admin_required(view):
 def perm_to_view_required(view):
     @functools.wraps(view)
     def wrapped_view(*args, **kwargs):
-        if g.project is None:
+        if g.project is None and 'project_id' not in request.view_args:
             return redirect(url_for('project.select', next=url_for(request.endpoint, **kwargs)))
         return view(*args, **kwargs)
     return login_required(wrapped_view)

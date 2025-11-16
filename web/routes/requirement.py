@@ -1,7 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, g, flash
-from db import db, Requirement, TestCase, RequirementTestCase
+from services.requirement import create_requirement, get_requirements, get_requirement, edit_requirement, delete_requirement, update_orders, update_pair
+from services.associate import create_associations_to_requirement, get_associated_testcase_ids, get_testcases_for_requirement
+from services.testcase import get_testcases
 from decorators import perm_to_view_required, perm_to_edit_required
-from datetime import datetime
+
 
 bp = Blueprint('requirement', __name__, url_prefix='/requirement')
 
@@ -10,33 +12,27 @@ bp = Blueprint('requirement', __name__, url_prefix='/requirement')
 def index():
     if not g.project:
         return redirect(url_for('project.select', next=url_for('requirement.index')))
-    requirements = db.session.execute(
-        db.select(Requirement).filter_by(project_id=g.project.id).order_by(Requirement.order.asc())
-    ).scalars().all()
+    requirements = get_requirements(g.project.id)
     return render_template('requirement/index.html', requirements=requirements)
 
 @bp.route('/<int:requirement_id>')
 @perm_to_view_required
 def detail(requirement_id):
-    requirement = db.get_or_404(Requirement, requirement_id)
-    testcases = db.session.execute(
-        db.select(TestCase).join(RequirementTestCase).filter(
-            RequirementTestCase.requirement_id == requirement.id
-        ).order_by(TestCase.order.asc())
-    ).scalars().all()
+    requirement = get_requirement(requirement_id)
+    testcases = get_testcases_for_requirement(requirement_id)
     return render_template('requirement/detail.html', requirement=requirement, testcases=testcases)
 
 @bp.route('/<int:requirement_id>/edit', methods=['GET', 'POST'])
 @perm_to_edit_required
 def edit(requirement_id):
-    requirement = db.get_or_404(Requirement, requirement_id)
     if request.method == 'POST':
-        requirement.title = request.form['title']
-        requirement.description = request.form['description']
-        requirement.priority = request.form['priority']
-        requirement.updated_at = datetime.now()
-        db.session.commit()
-        return redirect(url_for('requirement.detail', requirement_id=requirement.id))
+        title = request.form['title']
+        description = request.form['description']
+        priority = request.form['priority']
+        edit_requirement(requirement_id, title, description, priority)
+        flash('Requirement updated successfully.')
+        return redirect(url_for('requirement.detail', requirement_id=requirement_id))
+    requirement = get_requirement(requirement_id)
     return render_template('requirement/edit.html', requirement=requirement)
 
 @bp.route('/create', methods=['GET', 'POST'])
@@ -46,62 +42,38 @@ def create():
         title = request.form['title']
         description = request.form['description']
         priority = request.form['priority']
-        requirement = Requirement(title=title, description=description, priority=priority, project_id=g.project.id)
-        requirement.order = requirement.last_order + 1
-        db.session.add(requirement)
-        db.session.commit()
+        requirement = create_requirement(title, description, priority, g.project.id)
         flash(f'{requirement.code_with_prefix} created successfully.')
-        return redirect(url_for('requirement.index'))
+        return redirect(url_for('requirement.detail', requirement_id=requirement.id))
     return render_template('requirement/create.html')
 
 @bp.route('/<int:requirement_id>/delete', methods=['POST'])
 @perm_to_edit_required
 def delete(requirement_id):
-    requirement = db.get_or_404(Requirement, requirement_id)
-    db.session.delete(requirement)
-    db.session.commit()
+    delete_requirement(requirement_id)
     return redirect(url_for('requirement.index'))
 
 @bp.route('/reorder', methods=['GET'])
 @perm_to_edit_required
 def reorder():
-    requirements = db.session.execute(
-        db.select(Requirement).filter_by(project_id=g.project.id).order_by(Requirement.order.asc())
-    ).scalars().all()
-    for index, req in enumerate(requirements):
-        req.order = index + 1
-    db.session.commit()
+    requirements = update_orders(g.project.id)
     return render_template('requirement/reorder.html', requirements=requirements)
 
 @bp.route('/<int:requirement_id1>/<int:requirement_id2>', methods=['POST'])
 @perm_to_edit_required
 def change_order(requirement_id1, requirement_id2):
-    requirement1 = db.get_or_404(Requirement, requirement_id1)
-    requirement2 = db.get_or_404(Requirement, requirement_id2)
-    requirement1.order, requirement2.order = requirement2.order, requirement1.order
-    db.session.commit()
+    update_pair(requirement_id1, requirement_id2)
     return redirect(url_for('requirement.reorder'))
 
 @bp.route('/<int:requirement_id>/associate/', methods=['GET', 'POST'])
 @perm_to_edit_required
 def associate(requirement_id):
-    requirement = db.get_or_404(Requirement, requirement_id)
-    associated_ids = db.session.execute(
-        db.select(RequirementTestCase.test_case_id).filter_by(requirement_id=requirement.id)
-        ).scalars().all()
-    testcases = db.session.execute(
-        db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
-    ).scalars().all()
+    requirement = get_requirement(requirement_id)
     if request.method == 'POST':
         testcase_ids = request.form.getlist('testcase_ids')
-        for testcase in testcases:
-            if str(testcase.id) in testcase_ids and testcase.id not in associated_ids:
-                association = RequirementTestCase(requirement_id=requirement.id, test_case_id=testcase.id)
-                db.session.add(association)
-            elif str(testcase.id) not in testcase_ids and testcase.id in associated_ids:
-                db.session.execute(
-                    db.delete(RequirementTestCase).filter_by(requirement_id=requirement.id, test_case_id=testcase.id)
-                )
-        db.session.commit()
+        create_associations_to_requirement(requirement_id, testcase_ids)
+        flash('Test cases associated successfully.')
         return redirect(url_for('requirement.detail', requirement_id=requirement.id))
+    associated_ids = get_associated_testcase_ids(requirement_id)
+    testcases = get_testcases(g.project.id)
     return render_template('requirement/associate.html', requirement=requirement, testcases=testcases, associated_ids=associated_ids)

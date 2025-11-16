@@ -2,9 +2,9 @@ from smtplib import SMTP
 from email.mime.text import MIMEText
 import jwt
 from datetime import datetime, timedelta, timezone
-from io import StringIO
+from io import StringIO, BytesIO
 import csv
-import re
+import json
 
 
 def code_with_prefix(prefix, order):
@@ -43,22 +43,17 @@ def database_uri(database="example", user="root", password_file=None, host="db",
 def create_csv(data):
     output = StringIO()
     writer = csv.writer(output)
-
     for row in data:
         writer.writerow(row)
-
     return output.getvalue()
 
-def normalize_steps(steps):
-    rows = re.sub(r'^\s*\d+[\.\-\)]?\s*', '', steps, flags=re.MULTILINE)
+def create_json(data):
+    json_data = json.dumps(data, indent=4)
+    buffer = BytesIO()
+    buffer.write(json_data.encode('utf-8'))
+    buffer.seek(0)
+    return buffer
 
-    rows = [row.strip() for row in rows.splitlines() if row.strip()]
-
-    norm_steps = []
-    for i, row in enumerate(rows, 1):
-        row = re.sub(r'[\.\s,]+$', '', row).strip()
-        if not re.search(r'[\.\?\!]$', row):
-            row += '.'
-        norm_steps.append(f"{i}. {row}")
-
-    return "\n".join(norm_steps)
+def import_json(file):
+    data = file.read().decode('utf-8')
+    return json.loads(data)

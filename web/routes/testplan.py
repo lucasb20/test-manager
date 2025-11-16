@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, g
 from db import db, TestPlan, TestCase, TestPlanCase
+from services.testcase import get_testcases
 from decorators import perm_to_view_required, perm_to_edit_required
 
 
@@ -64,9 +65,7 @@ def delete(testplan_id):
 @bp.route('/<int:testplan_id>/associate', methods=['GET', 'POST'])
 @perm_to_edit_required
 def associate(testplan_id):
-    testcases = db.session.execute(
-        db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
-    ).scalars().all()
+    testcases = get_testcases(g.project.id)
     associated_ids = db.session.execute(
         db.select(TestPlanCase.test_case_id).filter_by(test_plan_id=testplan_id)
     ).scalars().all()
