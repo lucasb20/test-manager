@@ -1,23 +1,17 @@
 {% extends 'base.html' %}
+{% from "_formhelpers.html" import render_field %}
 
 {% block content %}
 <h2>Requirement</h2>
 <form method="post">
     <div class="mb-3">
-        <label for="title" class="form-label">Title:</label>
-        <input type="text" name="title" id="title" value="{{ requirement.title }}" class="form-control" required>
+        {{ render_field(form.title, class="form-control") }}
     </div>
     <div class="mb-3">
-        <label for="description" class="form-label">Description:</label>
-        <textarea name="description" id="description" class="form-control">{{ requirement.description }}</textarea>
+        {{ render_field(form.description, class="form-control") }}
     </div>
     <div class="mb-3">
-        <label for="priority" class="form-label">Priority:</label>
-        <select name="priority" id="priority" class="form-select">
-            <option value="Low" {% if requirement.priority == 'Low' %}selected{% endif %}>Low</option>
-            <option value="Medium" {% if requirement.priority == 'Medium' %}selected{% endif %}>Medium</option>
-            <option value="High" {% if requirement.priority == 'High' %}selected{% endif %}>High</option>
-        </select>
+        {{ render_field(form.priority, class="form-select") }}
     </div>
     <button type="submit" class="btn btn-primary">Update Requirement</button>
     <a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}" class="btn btn-secondary">Cancel</a>

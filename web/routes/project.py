@@ -1,11 +1,12 @@
+from datetime import date
 from flask import Blueprint, render_template, request, g, redirect, url_for, session, send_file, flash
-from services.project import create_project, delete_project, edit_project, get_project, get_projects
+from sqlalchemy.exc import IntegrityError
+from services.project import create_project, delete_project, edit_project, get_project, get_projects, ProjectForm
 from services.requirement import get_requirements, create_requirement
 from services.testcase import get_testcases, create_testcase
 from services.associate import create_associations_with_codes
 from decorators import login_required, perm_to_view_required, perm_to_manage_required
 from utils import create_json, import_json
-from datetime import date
 
 
 bp = Blueprint('project', __name__, url_prefix='/project')
@@ -37,23 +38,29 @@ def detail(project_id):
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
-    if request.method == 'POST':
-        name = request.form['name']
-        description = request.form['description']
-        project = create_project(name, description, g.user.id)
-        return redirect(url_for('project.detail', project_id=project.id))
-    return render_template('project/create.html')
+    form = ProjectForm(request.form)
+    if request.method == 'POST' and form.validate():
+        try:
+            project = create_project(form.name.data, form.description.data, g.user.id)
+            return redirect(url_for('project.detail', project_id=project.id))
+        except IntegrityError as e:
+            flash('Project with this name already exists.')
+    return render_template('project/create.html', form=form)
 
 @bp.route('/<int:project_id>/edit', methods=['GET', 'POST'])
 @perm_to_manage_required
 def edit(project_id):
-    if request.method == 'POST':
-        name = request.form['name']
-        description = request.form['description']
-        edit_project(project_id, name, description)
-        return redirect(url_for('project.detail', project_id=project_id))
+    form = ProjectForm(request.form)
+    if request.method == 'POST' and form.validate():
+        try:
+            edit_project(project_id, form.name.data, form.description.data)
+            return redirect(url_for('project.detail', project_id=project_id))
+        except IntegrityError as e:
+            flash('Project with this name already exists.')
     project = get_project(project_id)
-    return render_template('project/edit.html', project=project)
+    form.name.data = project.name
+    form.description.data = project.description
+    return render_template('project/edit.html', form=form, project=project)
 
 @bp.route('/<int:project_id>/delete', methods=['POST'])
 @perm_to_manage_required
@@ -119,14 +126,14 @@ def import_project():
             for req_data in data.get('requirements', []):
                 create_requirement(
                     project_id=project.id,
-                    title=req_data['title'],
+                    title=req_data.get('title'),
                     description=req_data.get('description', ''),
                     priority=req_data.get('priority')
                 )
             for tc_data in data.get('testcases', []):
                 tc = create_testcase(
                     project_id=project.id,
-                    title=tc_data['title'],
+                    title=tc_data.get('title'),
                     preconditions=tc_data.get('preconditions', ''),
                     steps=tc_data.get('steps', ''),
                     expected_result=tc_data.get('expected_result', ''),

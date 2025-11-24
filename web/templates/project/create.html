@@ -1,15 +1,14 @@
 {% extends 'base.html' %}
+{% from "_formhelpers.html" import render_field %}
 
 {% block content %}
 <h2>Create a New Project</h2>
 <form method="post">
     <div class="mb-3">
-        <label for="name" class="form-label">Project Name</label>
-        <input type="text" id="name" name="name" class="form-control" autofocus required>
+        {{ render_field(form.name, class="form-control", id="name") }}
     </div>
     <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea id="description" name="description" class="form-control"></textarea>
+        {{ render_field(form.description, class="form-control", id="description") }}
     </div>
     <button type="submit" class="btn btn-primary">Create Project</button>
     <a href="{{ url_for('project.index') }}" class="btn btn-secondary">Back to List</a>

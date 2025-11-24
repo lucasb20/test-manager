@@ -1,10 +1,10 @@
+from datetime import date
 from flask import Blueprint, render_template, request, redirect, url_for, g, flash, Response
-from services.testcase import create_testcase, get_testcases, get_testcase, edit_testcase, delete_testcase, update_orders, update_pair
+from services.testcase import create_testcase, get_testcases, get_testcase, edit_testcase, delete_testcase, update_orders, update_pair, TestCaseForm
 from services.requirement import get_requirements
 from services.associate import create_associations_to_testcase, get_requirements_for_testcase, get_associated_requirement_ids
 from decorators import perm_to_view_required, perm_to_edit_required
 from utils import create_csv
-from datetime import date
 
 
 bp = Blueprint('testcase', __name__, url_prefix='/testcase')
@@ -22,10 +22,23 @@ def detail(testcase_id):
     requirements = get_requirements_for_testcase(testcase_id)
     return render_template('testcase/detail.html', testcase=testcase, requirements=requirements)
 
+@bp.route('/create', methods=['GET', 'POST'])
+@perm_to_edit_required
+def create():
+    form = TestCaseForm(request.form)
+    if request.method == 'POST' and form.validate():
+        functional = form.is_functional.data == 1
+        automation = form.is_automated.data == 1
+        testcase = create_testcase(form.title.data, form.preconditions.data, form.steps.data, form.expected_result.data, g.project.id, functional, automation)
+        flash(f'{testcase.code_with_prefix} created successfully.')
+        return redirect(url_for('testcase.index'))
+    return render_template('testcase/create.html', form=form)
+
 @bp.route('/<int:testcase_id>/edit', methods=['GET', 'POST'])
 @perm_to_edit_required
 def edit(testcase_id):
-    if request.method == 'POST':
+    form = TestCaseForm(request.form)
+    if request.method == 'POST' and form.validate():
         title = request.form['title']
         preconditions = request.form['preconditions']
         steps = request.form['steps']
@@ -35,22 +48,13 @@ def edit(testcase_id):
         testcase = edit_testcase(testcase_id, title, preconditions, steps, expected_result, is_functional, is_automated)
         return redirect(url_for('testcase.detail', testcase_id=testcase.id))
     testcase = get_testcase(testcase_id)
-    return render_template('testcase/edit.html', testcase=testcase)
-
-@bp.route('/create', methods=['GET', 'POST'])
-@perm_to_edit_required
-def create():
-    if request.method == 'POST':
-        title = request.form['title']
-        preconditions = request.form['preconditions']
-        steps = request.form['steps']
-        expected_result = request.form['expected_result']
-        functional = request.form['functional'] == 'functional'
-        automation = request.form.get('automation') == 'on'
-        testcase = create_testcase(title, preconditions, steps, expected_result, g.project.id, functional, automation)
-        flash(f'{testcase.code_with_prefix} created successfully.')
-        return redirect(url_for('testcase.index'))
-    return render_template('testcase/create.html')
+    form.title.data = testcase.title
+    form.preconditions.data = testcase.preconditions
+    form.steps.data = testcase.steps
+    form.expected_result.data = testcase.expected_result
+    form.is_functional.data = 1 if testcase.is_functional else 0
+    form.is_automated.data = 1 if testcase.is_automated else 0
+    return render_template('testcase/edit.html', form=form, testcase=testcase)
 
 @bp.route('/<int:testcase_id>/delete', methods=['POST'])
 @perm_to_edit_required

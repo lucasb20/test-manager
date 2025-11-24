@@ -1,7 +1,16 @@
-from db import db, TestCase, RequirementTestCase, TestPlanCase
+from wtforms import Form, StringField, validators, TextAreaField, SelectField, BooleanField
 from datetime import datetime
 import re
+from db import db, TestCase, RequirementTestCase, TestPlanCase
 
+
+class TestCaseForm(Form):
+    title = StringField('Title', [validators.InputRequired(), validators.Length(max=200)])
+    preconditions = StringField('Preconditions', [validators.Length(max=200)])
+    steps = TextAreaField('Steps', [validators.Length(max=500)])
+    expected_result = StringField('Expected Result', [validators.InputRequired(), validators.Length(max=200)])
+    is_functional = SelectField('Functional', choices=[('1', 'Yes'), ('0', 'No')], coerce=int)
+    is_automated = BooleanField('Automated')
 
 def normalize_steps(steps):
     rows = re.sub(r'^\s*\d+[\.\-\)]?\s*', '', steps, flags=re.MULTILINE)
@@ -47,6 +56,7 @@ def edit_testcase(testcase_id, title, preconditions, steps, expected_result, is_
     testcase.is_automated = is_automated
     testcase.updated_at = datetime.now()
     db.session.commit()
+    return testcase
 
 def update_orders(project_id):
     testcases = db.session.execute(
@@ -55,6 +65,7 @@ def update_orders(project_id):
     for index, tc in enumerate(testcases):
         tc.order = index + 1
     db.session.commit()
+    return testcases
 
 def update_pair(testcase_id1, testcase_id2):
     testcase1 = db.get_or_404(TestCase, testcase_id1)

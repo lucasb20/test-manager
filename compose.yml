@@ -36,12 +36,21 @@ services:
       db:
         condition: service_healthy
 
+  maildev:
+    image: maildev/maildev:latest
+    restart: always
+    ports:
+      - 1080:1080
+      - 1025:1025
+    networks:
+      - frontnet
+
   proxy:
     build: proxy
     restart: always
     ports:
       - 80:80
-    depends_on: 
+    depends_on:
       - web
     networks:
       - frontnet

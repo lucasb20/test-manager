@@ -1,34 +1,26 @@
 {% extends 'base.html' %}
+{% from "_formhelpers.html" import render_field %}
 
 {% block content %}
 <h2>Test Case Edit</h2>
 <form method="post">
     <div class="mb-3">
-        <label for="title" class="form-label">Title</label>
-        <input type="text" name="title" id="title" class="form-control" value="{{ testcase.title }}">
+        {{ render_field(form.title, class="form-control") }}
     </div>
     <div class="mb-3">
-        <label for="preconditions" class="form-label">Preconditions</label>
-        <input type="text" name="preconditions" id="preconditions" class="form-control" value="{{ testcase.preconditions }}">
+        {{ render_field(form.preconditions, class="form-control") }}
     </div>
     <div class="mb-3">
-        <label for="steps" class="form-label">Steps</label>
-        <textarea name="steps" id="steps" class="form-control">{{ testcase.steps }}</textarea>
+        {{ render_field(form.steps, class="form-control") }}
     </div>
     <div class="mb-3">
-        <label for="expected_result" class="form-label">Expected Result</label>
-        <input type="text" name="expected_result" id="expected_result" class="form-control" value="{{ testcase.expected_result }}">
+        {{ render_field(form.expected_result, class="form-control") }}
     </div>
     <div class="mb-3">
-        <label for="functional" class="form-label">Type</label>
-        <select name="functional" id="functional" class="form-select" required>
-            <option value="functional" {% if testcase.is_functional %}selected{% endif %}>Functional</option>
-            <option value="non-functional" {% if not testcase.is_functional %}selected{% endif %}>Non-Functional</option>
-        </select>
+        {{ render_field(form.is_functional, class="form-select") }}
     </div>
     <div class="mb-3">
-        <input type="checkbox" name="automation" id="automation" class="form-check-input" {% if testcase.is_automated %}checked{% endif %}>
-        <label for="automation" class="form-check-label">Automated</label>
+        {{ render_field(form.is_automated, class="form-check-input") }}
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="btn btn-secondary">Cancel</a>

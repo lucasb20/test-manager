@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, url_for, redirect, g, flash
-from werkzeug.security import generate_password_hash
 from decorators import login_required
-from db import db, User
+from services.auth import edit_user, edit_user_password
 
 
 bp = Blueprint('profile', __name__, url_prefix='/profile')
@@ -17,10 +16,7 @@ def edit():
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
-        user = db.session.execute(db.select(User).filter_by(id=g.user.id)).scalar()
-        user.name = name
-        user.email = email
-        db.session.commit()
+        edit_user(g.user.id, name, email)
         flash('Profile updated successfully.')
         return redirect(url_for('profile.index'))
     return render_template('profile/edit.html', user=g.user)
@@ -31,11 +27,10 @@ def reset_password():
     if request.method == 'POST':
         new_password = request.form['new_password']
         confirm_password = request.form['confirm_password']
-        if new_password != confirm_password:
-            flash('Passwords do not match.')
-        else:
-            g.user.password = generate_password_hash(new_password)
-            db.session.commit()
+        try:
+            edit_user_password(g.user.id, new_password, confirm_password)
             flash('Password reset successfully.')
             return redirect(url_for('profile.index'))
+        except ValueError as e:
+            flash(str(e))
     return render_template('auth/reset_password_confirm.html')

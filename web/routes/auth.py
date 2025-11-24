@@ -1,52 +1,35 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, render_template, redirect, url_for, flash, session, g, current_app
+from sqlalchemy.exc import IntegrityError
 import click
-from werkzeug.security import check_password_hash, generate_password_hash
-from flask import render_template, redirect, url_for, flash, session, g, current_app
-from db import db, User
 from utils import send_email, generate_reset_token, verify_reset_token
+from services.auth import verify_credentials, create_user, get_user_by_email, edit_user_password, get_user, RegistrationForm, LoginForm, ResetPasswordForm, ResetPasswordConfirmForm
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        error = None
-        user = db.session.execute(db.select(User).filter_by(email=email)).scalar()
-
-        if user is None or not check_password_hash(user.password, password):
-            error = 'Incorrect email or password.'
-
-        if error is None:
+    form = LoginForm(request.form)
+    if request.method == 'POST' and form.validate():
+        user_id = verify_credentials(form.email.data, form.password.data)
+        if user_id is not None:
             session.clear()
-            session['user_id'] = user.id
+            session['user_id'] = user_id
             return redirect(url_for('index'))
-        flash(error)
-
-    return render_template('auth/login.html')
+        flash('Invalid email or password.')
+    return render_template('auth/login.html', form=form)
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        if password != confirm_password:
-            flash('Passwords do not match.')
-        else:
-            user = db.session.execute(db.select(User).filter_by(email=email)).first()
-            if user:
-                flash('Email address already registered.')
-            else:
-                new_user = User(name=name, email=email, password=generate_password_hash(password))
-                db.session.add(new_user)
-                db.session.commit()
-                flash('Registration successful! Please log in.')
-                return redirect(url_for('auth.login'))
-    return render_template('auth/register.html')
+    form = RegistrationForm(request.form)
+    if request.method == 'POST' and form.validate():
+        try:
+            create_user(form.name.data, form.email.data, form.password.data)
+            flash('Registration successful! Please log in.')
+            return redirect(url_for('auth.login'))
+        except IntegrityError:
+            flash('Email already registered.')
+    return render_template('auth/register.html', form=form)
 
 @bp.route('/logout')
 def logout():
@@ -55,14 +38,15 @@ def logout():
 
 @bp.route('/reset', methods=['GET', 'POST'])
 def reset_password():
-    if request.method == 'POST':
-        email = request.form['email']
-        user = db.session.query(User).filter_by(email=email).first()
-        if user:
-            token = generate_reset_token(user.id, current_app.config['SECRET_KEY'])
-            send_email(email, 'Password Reset', f'Your password reset link: {url_for("auth.reset_password_confirm", token=token, _external=True)}')
+    form = ResetPasswordForm(request.form)
+    if request.method == 'POST' and form.validate():
+        user_id = get_user_by_email(form.email.data)
+        if user_id:
+            token = generate_reset_token(user_id, current_app.config['SECRET_KEY'])
+            send_email(form.email.data, 'Password Reset', f'Your password reset link: {url_for("auth.reset_password_confirm", token=token, _external=True)}')
+            current_app.logger.info(url_for("auth.reset_password_confirm", token=token, _external=True))
         flash('Password reset email sent.')
-    return render_template('auth/reset_password.html')
+    return render_template('auth/reset_password.html', form=form)
 
 @bp.route('/reset/<token>', methods=['GET', 'POST'])
 def reset_password_confirm(token):
@@ -70,20 +54,12 @@ def reset_password_confirm(token):
     if user_id is None:
         flash('Invalid or expired reset link.')
         return redirect(url_for('auth.reset_password'))
-
-    if request.method == 'POST':
-        new_password = request.form['new_password']
-        confirm_password = request.form['confirm_password']
-        if new_password != confirm_password:
-            flash('Passwords do not match.')
-            return redirect(url_for('auth.reset_password_confirm', token=token))
-        user = db.get_or_404(User, user_id)
-        user.password = generate_password_hash(new_password)
-        db.session.commit()
+    form = ResetPasswordConfirmForm(request.form)
+    if request.method == 'POST' and form.validate():
+        edit_user_password(user_id, form.new_password.data)
         flash('Password has been reset. Please log in.')
         return redirect(url_for('auth.login'))
-
-    return render_template('auth/reset_password_confirm.html')
+    return render_template('auth/reset_password_confirm.html', form=form)
 
 @bp.before_app_request
 def load_logged_in_user():
@@ -91,13 +67,11 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = db.one_or_404(db.select(User).filter_by(id=user_id))
+        g.user = get_user(user_id)
 
 @bp.cli.command('create-admin')
 @click.argument('name')
 @click.argument('email')
 @click.argument('password')
 def create_admin(name, email, password):
-    admin_user = User(name=name, email=email, password=generate_password_hash(password), is_admin=True)
-    db.session.add(admin_user)
-    db.session.commit()
+    create_user(name, email, password, is_admin=True)

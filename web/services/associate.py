@@ -1,7 +1,7 @@
+import re
 from db import db, TestCase, Requirement, RequirementTestCase
 from services.requirement import get_requirement, get_requirements
 from services.testcase import get_testcases, get_testcase
-import re
 
 
 def create_associations_to_requirement(requirement_id, testcase_ids):

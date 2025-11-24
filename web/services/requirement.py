@@ -1,5 +1,12 @@
-from db import db, Requirement, RequirementTestCase
+from wtforms import Form, StringField, validators, TextAreaField, SelectField
 from datetime import datetime
+from db import db, Requirement, RequirementTestCase
+
+
+class RequirementForm(Form):
+    title = StringField('Title', [validators.InputRequired(), validators.Length(min=1, max=200)])
+    description = TextAreaField('Description', [validators.Optional(), validators.Length(max=500)])
+    priority = SelectField('Priority', choices=[('High', 'High'), ('Medium', 'Medium'), ('Low', 'Low')], validators=[validators.InputRequired()])
 
 def create_requirement(title, description, priority, project_id):
     requirement = Requirement(

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, g, flash
-from services.requirement import create_requirement, get_requirements, get_requirement, edit_requirement, delete_requirement, update_orders, update_pair
+from services.requirement import create_requirement, get_requirements, get_requirement, edit_requirement, delete_requirement, update_orders, update_pair, RequirementForm
 from services.associate import create_associations_to_requirement, get_associated_testcase_ids, get_testcases_for_requirement
 from services.testcase import get_testcases
 from decorators import perm_to_view_required, perm_to_edit_required
@@ -22,30 +22,29 @@ def detail(requirement_id):
     testcases = get_testcases_for_requirement(requirement_id)
     return render_template('requirement/detail.html', requirement=requirement, testcases=testcases)
 
-@bp.route('/<int:requirement_id>/edit', methods=['GET', 'POST'])
-@perm_to_edit_required
-def edit(requirement_id):
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        priority = request.form['priority']
-        edit_requirement(requirement_id, title, description, priority)
-        flash('Requirement updated successfully.')
-        return redirect(url_for('requirement.detail', requirement_id=requirement_id))
-    requirement = get_requirement(requirement_id)
-    return render_template('requirement/edit.html', requirement=requirement)
-
 @bp.route('/create', methods=['GET', 'POST'])
 @perm_to_edit_required
 def create():
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        priority = request.form['priority']
-        requirement = create_requirement(title, description, priority, g.project.id)
+    form = RequirementForm(request.form)
+    if request.method == 'POST' and form.validate():
+        requirement = create_requirement(form.title.data, form.description.data, form.priority.data, g.project.id)
         flash(f'{requirement.code_with_prefix} created successfully.')
         return redirect(url_for('requirement.detail', requirement_id=requirement.id))
-    return render_template('requirement/create.html')
+    return render_template('requirement/create.html', form=form)
+
+@bp.route('/<int:requirement_id>/edit', methods=['GET', 'POST'])
+@perm_to_edit_required
+def edit(requirement_id):
+    form = RequirementForm(request.form)
+    if request.method == 'POST' and form.validate():
+        edit_requirement(requirement_id, form.title.data, form.description.data, form.priority.data)
+        flash('Requirement updated successfully.')
+        return redirect(url_for('requirement.detail', requirement_id=requirement_id))
+    requirement = get_requirement(requirement_id)
+    form.title.data = requirement.title
+    form.description.data = requirement.description
+    form.priority.data = requirement.priority
+    return render_template('requirement/edit.html', requirement=requirement, form=form)
 
 @bp.route('/<int:requirement_id>/delete', methods=['POST'])
 @perm_to_edit_required

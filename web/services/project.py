@@ -1,10 +1,19 @@
+from wtforms import Form, StringField, validators, TextAreaField
 from db import db, Project, ProjectMember, TestCase, Requirement, RequirementTestCase, TestPlanCase, TestPlan, TestExecution, TestResult
 
 
+class ProjectForm(Form):
+    name = StringField('Name', [validators.InputRequired(), validators.Length(min=1, max=80)])
+    description = TextAreaField('Description', [validators.Optional(), validators.Length(max=500)])
+
 def create_project(name, description, owner_id):
-    project = Project(name=name, description=description, manager_id=owner_id)
-    db.session.add(project)
-    db.session.flush()
+    try:
+        project = Project(name=name, description=description, manager_id=owner_id)
+        db.session.add(project)
+        db.session.flush()
+    except Exception as e:
+        db.session.rollback()
+        raise e
     project_member = ProjectMember(project_id=project.id, user_id=owner_id, role="manager")
     db.session.add(project_member)
     db.session.commit()
@@ -23,11 +32,14 @@ def get_project(project_id):
     return db.session.get(Project, project_id)
 
 def edit_project(project_id, name, description):
-    project = db.session.get(Project, project_id)
-    project.name = name
-    project.description = description
-    db.session.commit()
-    return project
+    try:
+        project = db.session.get(Project, project_id)
+        project.name = name
+        project.description = description
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
 def delete_project(project_id):
     project = db.session.get(Project, project_id)

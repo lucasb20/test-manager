@@ -1,3 +1,5 @@
+import logging
+from logging.handlers import SMTPHandler
 from flask import Flask, render_template
 from flask_migrate import Migrate
 from db import db
@@ -34,3 +36,16 @@ def index():
     return render_template('index.html')
 
 app.jinja_env.filters['format_datetime'] = format_datetime
+
+if not app.debug:
+    mail_handler = SMTPHandler(
+        mailhost=('maildev', 1025),
+        fromaddr='server-error@example.com',
+        toaddrs=['admin@example.com'],
+        subject='Application Error'
+    )
+    mail_handler.setLevel(logging.ERROR)
+    mail_handler.setFormatter(logging.Formatter(
+        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+    ))
+    app.logger.addHandler(mail_handler)

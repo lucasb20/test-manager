@@ -1,10 +1,10 @@
-from smtplib import SMTP
-from email.mime.text import MIMEText
-import jwt
 from datetime import datetime, timedelta, timezone
 from io import StringIO, BytesIO
 import csv
 import json
+from smtplib import SMTP
+from email.mime.text import MIMEText
+import jwt
 
 
 def code_with_prefix(prefix, order):
@@ -28,7 +28,9 @@ def verify_reset_token(token, secret_key):
     try:
         data = jwt.decode(token, secret_key, algorithms=['HS256'])
         return data['user_id']
-    except:
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
         return None
 
 def format_datetime(dt):
@@ -36,8 +38,9 @@ def format_datetime(dt):
         return "N/A"
     return dt.strftime("%d/%m/%Y %H:%M")
 
-def database_uri(database="example", user="root", password_file=None, host="db", port=3306):
-    password = open(password_file, 'r').read()
+def database_uri(database="example", user="root", psswd_file=None, host="db", port=3306):
+    with open(psswd_file, encoding='utf-8') as f:
+        password = f.read().strip()
     return f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4"
 
 def create_csv(data):
