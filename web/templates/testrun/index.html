@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Test Execution</h2>
+<div class="mb-3">
+    <a href="{{ url_for('testrun.create', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-primary">Start Test Execution</a>
+    <a href="{{ url_for('testrun.previous', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-info">View Previous Executions</a>
+    <a href="{{ url_for('testsuite.detail', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-secondary">Back to Test Suite</a>
+</div>
+{% if tscs %}
+<h3>Test Cases</h3>
+<table class="table">
+    <thead class="table-dark table-striped table-bordered mt-3">
+        <tr>
+            <th>Order</th>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tsc in tscs %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ tsc.testcase.code_with_prefix }}</td>
+            <td>{{ tsc.testcase.title }}</td>
+            <td>
+                {% if loop.index > 1 %}
+                <form method="post" action="{{ url_for('testrun.change_order', testsuitecase_id1=tsc.id, testsuitecase_id2=tscs[loop.index0 - 1].id) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Move Up</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No test cases found for this test suite.</p>
+{% endif %}
+{% endblock %}

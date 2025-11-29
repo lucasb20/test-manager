@@ -3,15 +3,13 @@
 {% block content %}
 <h2>Test Execution Summary</h2>
 <div class="mb-3">
-    <a href="{{ url_for('testexec.previous', testplan_id=testexec.test_plan_id) }}" class="btn btn-secondary">Back to Previous Test Execution</a>
-    <a href="{{ url_for('testexec.export', testexec_id=testexec.id) }}" class="btn btn-info">Export CSV</a>
+    <a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Back to Previous Test Execution</a>
+    <a href="{{ url_for('testrun.export', testrun_id=testrun.id) }}" class="btn btn-info">Export CSV</a>
 </div>
-
 <p><strong>Total Tests:</strong> {{ total_tests }}</p>
 <p><strong>Passed Tests:</strong> {{ passed_tests }}</p>
 <p><strong>Failed Tests:</strong> {{ failed_tests }}</p>
 <p><strong>Skipped Tests:</strong> {{ skipped_tests }}</p>
-
 <table class="table">
     <thead class="table-dark table-striped table-bordered mt-3">
         <tr>

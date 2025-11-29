@@ -14,6 +14,6 @@
         {{ render_field(form.priority, class="form-select") }}
     </div>
     <button type="submit" class="btn btn-primary">Update Requirement</button>
-    <a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}" class="btn btn-secondary">Cancel</a>
+    <a href="{{ url_for('requirement.detail', requirement_id=request.view_args['requirement_id']) }}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}

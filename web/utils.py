@@ -6,7 +6,6 @@ from smtplib import SMTP
 from email.mime.text import MIMEText
 import jwt
 
-
 def code_with_prefix(prefix, order):
     return f"{prefix}-{order:03d}"
 

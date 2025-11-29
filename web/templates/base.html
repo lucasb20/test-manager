@@ -13,8 +13,7 @@
       <nav>
         <ul class="nav nav-underline">
           {% if g.user %}
-          <li class="nav-item"><a href="{{ url_for('testexec.select') }}" class="nav-link text-light">Test Executions</a></li>
-          <li class="nav-item"><a href="{{ url_for('testplan.index') }}" class="nav-link text-light">Test Plans</a></li>
+          <li class="nav-item"><a href="{{ url_for('testsuite.index') }}" class="nav-link text-light">Test Suites</a></li>
           <li class="nav-item"><a href="{{ url_for('testcase.index') }}" class="nav-link text-light">Test Cases</a></li>
           <li class="nav-item"><a href="{{ url_for('requirement.index') }}" class="nav-link text-light">Requirements</a></li>
             <li class="nav-item"><a href="{{ url_for('project.index') }}" class="nav-link text-light">Projects</a></li>

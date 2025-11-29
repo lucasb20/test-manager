@@ -2,7 +2,6 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from utils import code_with_prefix
 
-
 db = SQLAlchemy()
 
 class User(db.Model):
@@ -28,6 +27,7 @@ class Project(db.Model):
         ).scalar()
         return manager or "Unassigned"
 
+    # TODO: Remove these properties
     @property
     def requirements_titles(self):
         return db.session.execute(
@@ -104,6 +104,8 @@ class TestCase(db.Model):
     is_automated = db.Column(db.Boolean, nullable=False, default=False)
     project_id = db.Column(db.ForeignKey('project.id'))
     order = db.Column(db.Integer, default=0)
+    # TODO: Implement soft delete
+    # is_deleted = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now)
 
@@ -138,19 +140,17 @@ class RequirementTestCase(db.Model):
     requirement_id = db.Column(db.ForeignKey('requirement.id'))
     test_case_id = db.Column(db.ForeignKey('test_case.id'))
 
-class TestPlan(db.Model):
+class TestSuite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(500), default=None)
     project_id = db.Column(db.ForeignKey('project.id'))
-    platform = db.Column(db.String(50))
-    milestone = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
-class TestPlanCase(db.Model):
+class TestSuiteCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    test_plan_id = db.Column(db.ForeignKey('test_plan.id'))
+    test_suite_id = db.Column(db.ForeignKey('test_suite.id'))
     test_case_id = db.Column(db.ForeignKey('test_case.id'))
     order = db.Column(db.Integer, default=0)
 
@@ -158,28 +158,28 @@ class TestPlanCase(db.Model):
     def testcase(self):
         return db.session.get(TestCase, self.test_case_id)
 
-class TestExecution(db.Model):
+class TestRun(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    test_plan_id = db.Column(db.ForeignKey('test_plan.id'))
+    test_suite_id = db.Column(db.ForeignKey('test_suite.id'))
     status = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.now)
 
     @property
     def name(self):
         name = db.session.execute(
-            db.select(TestPlan.name).filter_by(id=self.test_plan_id)
+            db.select(TestSuite.name).filter_by(id=self.test_suite_id)
         ).scalar()
-        return name or "Unnamed Test Plan"
+        return name or "Unnamed Test Suite"
 
     @property
     def next_case(self):
         return len(db.session.execute(
-            db.select(TestResult.id).filter_by(test_execution_id=self.id)
+            db.select(TestResult.id).filter_by(test_run_id=self.id)
         ).scalars().all())
 
 class TestResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    test_execution_id = db.Column(db.ForeignKey('test_execution.id'))
+    test_run_id = db.Column(db.ForeignKey('test_run.id'))
     test_case_id = db.Column(db.ForeignKey('test_case.id'))
     executed_by = db.Column(db.ForeignKey('user.id'))
     result = db.Column(db.String(50))

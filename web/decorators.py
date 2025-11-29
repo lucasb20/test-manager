@@ -2,7 +2,6 @@ import functools
 from flask import g, redirect, url_for, flash, request
 from db import db, ProjectMember
 
-
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(*args, **kwargs):

@@ -11,7 +11,7 @@
     </div>
     {% endfor %}
     <button type="submit" class="btn btn-primary">Save</button>
-    <a href="{{ url_for('testplan.detail', testplan_id=request.view_args['testplan_id']) }}" class="btn btn-secondary">Back to Test Plan</a>
+    <a href="{{ url_for('testsuite.detail', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-secondary">Back to Test Suite</a>
 </form>
 {% else %}
 <p>No test cases available.</p>

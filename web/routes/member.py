@@ -2,7 +2,6 @@ from flask import Blueprint, render_template, request, redirect, url_for, g, fla
 from db import db, ProjectMember, User
 from decorators import perm_to_view_required, perm_to_manage_required
 
-
 bp = Blueprint('member', __name__, url_prefix='/member')
 
 @bp.route("/")
@@ -14,7 +13,7 @@ def index():
 @bp.route("/<int:member_id>")
 @perm_to_view_required
 def detail(member_id):
-    member = db.session.execute(db.select(ProjectMember).filter_by(id=member_id)).scalar()
+    member = db.get_or_404(ProjectMember, member_id)
     return render_template("member/detail.html", member=member)
 
 @bp.route("/create", methods=["GET", "POST"])
@@ -34,7 +33,7 @@ def create():
 @bp.route("/<int:member_id>/edit", methods=["GET", "POST"])
 @perm_to_manage_required
 def edit(member_id):
-    member = db.session.execute(db.select(ProjectMember).filter_by(id=member_id)).scalar()
+    member = db.get_or_404(ProjectMember, member_id)
     if request.method == "POST":
         role = request.form.get("role")
         if member:
@@ -46,8 +45,6 @@ def edit(member_id):
 @bp.route("/<int:member_id>/delete", methods=["POST"])
 @perm_to_manage_required
 def delete(member_id):
-    member = db.session.execute(db.select(ProjectMember).filter_by(id=member_id)).scalar()
-    if member:
-        db.session.delete(member)
-        db.session.commit()
+    db.session.execute(db.delete(ProjectMember).where(ProjectMember.id == member_id))
+    db.session.commit()
     return redirect(url_for('member.index'))

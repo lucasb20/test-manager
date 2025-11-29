@@ -1,9 +1,10 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash, session, g, current_app
+from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy.exc import IntegrityError
 import click
 from utils import send_email, generate_reset_token, verify_reset_token
-from services.auth import verify_credentials, create_user, get_user_by_email, edit_user_password, get_user, RegistrationForm, LoginForm, ResetPasswordForm, ResetPasswordConfirmForm
-
+from forms import RegistrationForm, LoginForm, ResetPasswordForm, ResetPasswordConfirmForm
+from db import db, User
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -11,10 +12,10 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 def login():
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
-        user_id = verify_credentials(form.email.data, form.password.data)
-        if user_id is not None:
+        user = db.session.execute(db.select(User).filter_by(email=form.email.data)).scalar()
+        if user and check_password_hash(user.password, form.password.data):
             session.clear()
-            session['user_id'] = user_id
+            session['user_id'] = user.id
             return redirect(url_for('index'))
         flash('Invalid email or password.')
     return render_template('auth/login.html', form=form)
@@ -24,7 +25,9 @@ def register():
     form = RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
         try:
-            create_user(form.name.data, form.email.data, form.password.data)
+            new_user = User(name=form.name.data, email=form.email.data, password=generate_password_hash(form.password.data))
+            db.session.add(new_user)
+            db.session.commit()
             flash('Registration successful! Please log in.')
             return redirect(url_for('auth.login'))
         except IntegrityError:
@@ -40,7 +43,7 @@ def logout():
 def reset_password():
     form = ResetPasswordForm(request.form)
     if request.method == 'POST' and form.validate():
-        user_id = get_user_by_email(form.email.data)
+        user_id = db.session.execute(db.select(User.id).filter_by(email=form.email.data)).scalar()
         if user_id:
             token = generate_reset_token(user_id, current_app.config['SECRET_KEY'])
             send_email(form.email.data, 'Password Reset', f'Your password reset link: {url_for("auth.reset_password_confirm", token=token, _external=True)}')
@@ -56,7 +59,8 @@ def reset_password_confirm(token):
         return redirect(url_for('auth.reset_password'))
     form = ResetPasswordConfirmForm(request.form)
     if request.method == 'POST' and form.validate():
-        edit_user_password(user_id, form.new_password.data)
+        db.session.execute(db.update(User).where(User.id == user_id).values(password=generate_password_hash(form.new_password.data)))
+        db.session.commit()
         flash('Password has been reset. Please log in.')
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password_confirm.html', form=form)
@@ -67,11 +71,17 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = get_user(user_id)
+        g.user = db.session.get(User, user_id)
 
 @bp.cli.command('create-admin')
 @click.argument('name')
 @click.argument('email')
 @click.argument('password')
 def create_admin(name, email, password):
-    create_user(name, email, password, is_admin=True)
+    try:
+        admin_user = User(name=name, email=email, password=generate_password_hash(password), is_admin=True)
+        db.session.add(admin_user)
+        db.session.commit()
+        click.echo(f'Admin user {name} created successfully.')
+    except IntegrityError:
+        click.echo('Error: Email already registered.')

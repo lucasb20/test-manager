@@ -2,16 +2,13 @@
 
 {% block content %}
 <h2>Test Execution</h2>
-
 <p>Running testcase {{ index + 1 }} of {{ total }}</p>
-
 <p><strong>ID</strong>: {{ testcase.code_with_prefix }}</p>
 <p><strong>Title</strong>: {{ testcase.title }}</p>
 <p><strong>Preconditions</strong>: {{ testcase.preconditions }}</p>
 <p><strong>Steps</strong>: {{ testcase.steps | replace('\n','<br/>') | safe }}</p>
 <p><strong>Expected Results</strong>: {{ testcase.expected_result }}</p>
-
-<form method="post" action="{{ url_for('testexec.run_case', testexec_id=testexec.id, index=index) }}">
+<form method="post" action="{{ url_for('testrun.run_case', testrun_id=testrun.id, index=index) }}">
     <div class="mb-3">
         <select id="status" name="status" class="form-select" required>
             <option value="" disabled selected>Select status</option>
@@ -20,13 +17,11 @@
             <option value="skip">Skip</option>
         </select>
     </div>
-
     <div class="mb-3">
         <label for="notes" class="form-label">Notes:</label>
-        <textarea id="notes" name="notes" class="form-control"></textarea>
+        <textarea id="notes" name="notes" class="form-control" maxlength="200"></textarea>
     </div>
-
     <button type="submit" class="btn btn-primary">Submit</button>
-    <a href="{{ url_for('testexec.previous', testplan_id=testexec.test_plan_id) }}" class="btn btn-secondary">Pause</a>
+    <a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Pause</a>
 </form>
 {% endblock %}

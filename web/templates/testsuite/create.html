@@ -2,10 +2,11 @@
 {% from "_formhelpers.html" import render_field %}
 
 {% block content %}
-<h2>Requirements</h2>
-<form method="post">
+<h2>Test Suites</h2>
+
+<form action="{{ url_for('testsuite.create') }}" method="post">
     <div class="mb-3">
-        {{ render_field(form.title, class="form-control", list="titles", autofocus=True) }}
+        {{ render_field(form.name, class="form-control") }}
     </div>
     <div class="mb-3">
         <label for="project" class="form-label">Project</label>
@@ -14,15 +15,7 @@
     <div class="mb-3">
         {{ render_field(form.description, class="form-control") }}
     </div>
-    <div class="mb-3">
-        {{ render_field(form.priority, class="form-select") }}
-    </div>
-    <button type="submit" class="btn btn-primary">Create Requirement</button>
+    <button type="submit" class="btn btn-primary">Create Test Suite</button>
+    <a href="{{ url_for('testsuite.index') }}" class="btn btn-secondary">Back to List</a>
 </form>
-
-<datalist id="titles">
-    {% for title in g.project.requirements_titles %}
-    <option value="{{ title }}">
-    {% endfor %}
-</datalist>
 {% endblock %}

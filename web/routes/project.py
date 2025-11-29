@@ -1,20 +1,22 @@
 from datetime import date
 from flask import Blueprint, render_template, request, g, redirect, url_for, session, send_file, flash
 from sqlalchemy.exc import IntegrityError
-from services.project import create_project, delete_project, edit_project, get_project, get_projects, ProjectForm
-from services.requirement import get_requirements, create_requirement
-from services.testcase import get_testcases, create_testcase
-from services.associate import create_associations_with_codes
 from decorators import login_required, perm_to_view_required, perm_to_manage_required
+from db import db, Project, ProjectMember, Requirement, RequirementTestCase, TestCase, TestRun, TestResult, TestSuite, TestSuiteCase
 from utils import create_json, import_json
-
+from forms import ProjectForm
 
 bp = Blueprint('project', __name__, url_prefix='/project')
 
 @bp.route('/')
 @login_required
 def index():
-    projects = get_projects(g.user)
+    if g.user.is_admin:
+        projects = db.session.execute(db.select(Project)).scalars().all()
+    else:
+        projects = db.session.execute(
+            db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)
+        ).scalars().all()
     return render_template('project/index.html', projects=projects)
 
 @bp.route('/select', methods=['GET', 'POST'])
@@ -23,16 +25,20 @@ def select():
     next_url = request.form.get('next')
     if request.method == 'POST':
         project_id = request.form['project_id']
-        project = get_project(project_id)
-        session['project_id'] = project.id
+        session['project_id'] = project_id
         return redirect(next_url or url_for('project.index'))
-    projects = get_projects(g.user)
+    if g.user.is_admin:
+        projects = db.session.execute(db.select(Project)).scalars().all()
+    else:
+        projects = db.session.execute(
+            db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)
+        ).scalars().all()
     return render_template('project/select.html', projects=projects)
 
 @bp.route('/<int:project_id>')
 @perm_to_view_required
 def detail(project_id):
-    project = get_project(project_id)
+    project = db.get_or_404(Project, project_id)
     return render_template('project/detail.html', project=project)
 
 @bp.route('/create', methods=['GET', 'POST'])
@@ -41,54 +47,96 @@ def create():
     form = ProjectForm(request.form)
     if request.method == 'POST' and form.validate():
         try:
-            project = create_project(form.name.data, form.description.data, g.user.id)
+            project = Project(name=form.name.data, description=form.description.data, manager_id=g.user.id)
+            db.session.add(project)
+            db.session.flush()
+            project_member = ProjectMember(project_id=project.id, user_id=g.user.id, role="manager")
+            db.session.add(project_member)
+            db.session.commit()
             return redirect(url_for('project.detail', project_id=project.id))
         except IntegrityError as e:
+            db.session.rollback()
             flash('Project with this name already exists.')
     return render_template('project/create.html', form=form)
 
 @bp.route('/<int:project_id>/edit', methods=['GET', 'POST'])
 @perm_to_manage_required
 def edit(project_id):
-    form = ProjectForm(request.form)
+    project = db.get_or_404(Project, project_id)
+    form = ProjectForm(request.form, obj=project)
     if request.method == 'POST' and form.validate():
         try:
-            edit_project(project_id, form.name.data, form.description.data)
+            project.name = form.name.data
+            project.description = form.description.data
+            db.session.commit()
             return redirect(url_for('project.detail', project_id=project_id))
-        except IntegrityError as e:
+        except IntegrityError:
             flash('Project with this name already exists.')
-    project = get_project(project_id)
-    form.name.data = project.name
-    form.description.data = project.description
-    return render_template('project/edit.html', form=form, project=project)
+    return render_template('project/edit.html', form=form)
 
 @bp.route('/<int:project_id>/delete', methods=['POST'])
 @perm_to_manage_required
 def delete(project_id):
-    delete_project(project_id)
+    db.session.execute(
+        db.delete(ProjectMember).where(ProjectMember.project_id == project_id)
+    )
+    rtcs = db.session.execute(
+        db.select(RequirementTestCase).join(TestCase).filter(TestCase.project_id == project_id)
+    ).scalars().all()
+    for rtc in rtcs:
+        db.session.delete(rtc)
+    db.session.execute(
+        db.delete(Requirement).where(Requirement.project_id == project_id)
+    )
+    tscs = db.session.execute(
+        db.select(TestSuiteCase).join(TestSuite).filter(TestSuite.project_id == project_id)
+    ).scalars().all()
+    for tsc in tscs:
+        db.session.delete(tsc)
+    db.session.execute(
+        db.delete(TestCase).where(TestCase.project_id == project_id)
+    )
+    trs = db.session.execute(
+        db.select(TestResult).join(TestRun).join(TestSuite).filter(TestSuite.project_id == project_id)
+    ).scalars().all()
+    for tr in trs:
+        db.session.delete(tr)
+    tes = db.session.execute(
+        db.select(TestRun).join(TestSuite).filter(TestSuite.project_id == project_id)
+    ).scalars().all()
+    for te in tes:
+        db.session.delete(te)
+    db.session.execute(
+        db.delete(TestSuite).where(TestSuite.project_id == project_id)
+    )
+    db.session.execute(
+        db.delete(Project).where(Project.id == project_id)
+    )
+    db.session.commit()
     return redirect(url_for('project.index'))
 
 @bp.route('/<int:project_id>/export')
 @perm_to_view_required
 def export(project_id):
-    project = get_project(project_id)
-    requirements = get_requirements(project_id)
-    testcases = get_testcases(project_id)
+    project = db.get_or_404(Project, project_id)
+    requirements = db.session.execute(
+        db.select(Requirement).filter_by(project_id=project_id).order_by(Requirement.order.asc())
+    ).scalars().all()
+    testcases = db.session.execute(
+        db.select(TestCase).filter_by(project_id=project_id).order_by(TestCase.order.asc())
+    ).scalars().all()
     project_data = {
         'name': project.name,
         'description': project.description,
-        'requirements': [
-            {
-                'id': req.code_with_prefix,
+        'requirements': {
+            req.code_with_prefix: {
                 'title': req.title,
                 'description': req.description,
                 'priority': req.priority,
-                'created_at': req.created_at.isoformat(),
             } for req in requirements
-        ],
-        'testcases': [
-            {
-                'id': tc.code_with_prefix,
+        },
+        'testcases': {
+            tc.code_with_prefix: {
                 'title': tc.title,
                 'requirements': tc.requirements_codes,
                 'preconditions': tc.preconditions,
@@ -96,9 +144,8 @@ def export(project_id):
                 'expected_result': tc.expected_result,
                 'is_functional': tc.is_functional,
                 'is_automated': tc.is_automated,
-                'created_at': tc.created_at.isoformat()
             } for tc in testcases
-        ]
+        }
     }
     buffer = create_json(project_data)
     filename = f"{project.name.casefold()}_{date.today()}.json"
@@ -118,31 +165,51 @@ def import_project():
             flash('No file selected or incorrect file type.')
         else:
             data = import_json(file)
-            project = create_project(
-                name=data['name'],
-                description=data.get('description', ''),
-                owner_id=g.user.id
-            )
-            for req_data in data.get('requirements', []):
-                create_requirement(
-                    project_id=project.id,
-                    title=req_data.get('title'),
-                    description=req_data.get('description', ''),
-                    priority=req_data.get('priority')
+            try:
+                project = Project(
+                    name=data.get('name'),
+                    description=data.get('description', ''),
+                    manager_id=g.user.id
                 )
-            for tc_data in data.get('testcases', []):
-                tc = create_testcase(
-                    project_id=project.id,
-                    title=tc_data.get('title'),
-                    preconditions=tc_data.get('preconditions', ''),
-                    steps=tc_data.get('steps', ''),
-                    expected_result=tc_data.get('expected_result', ''),
-                    is_functional=tc_data.get('is_functional', True),
-                    is_automated=tc_data.get('is_automated', False)
-                )
-                create_associations_with_codes(tc.id, tc_data.get('requirements', ''))
-            flash('Project imported successfully.')
-            return redirect(url_for('project.index'))
+                db.session.add(project)
+                db.session.flush()
+                project_member = ProjectMember(project_id=project.id, user_id=g.user.id, role="manager")
+                db.session.add(project_member)
+                reqs = dict()
+                for code, req_data in data.get('requirements', {}).items():
+                    req = Requirement(
+                        project_id=project.id,
+                        title=req_data.get('title'),
+                        description=req_data.get('description', ''),
+                        priority=req_data.get('priority', 'High')
+                    )
+                    db.session.add(req)
+                    reqs[code] = req
+                db.session.flush()
+                for tc_data in data.get('testcases', {}).values():
+                    tc = TestCase(
+                        project_id=project.id,
+                        title=tc_data.get('title'),
+                        preconditions=tc_data.get('preconditions'),
+                        steps=tc_data.get('steps'),
+                        expected_result=tc_data.get('expected_result'),
+                        is_functional=tc_data.get('is_functional', True),
+                        is_automated=tc_data.get('is_automated', False)
+                    )
+                    db.session.add(tc)
+                    db.session.flush()
+                    for req_code in tc_data.get('requirements', '').split(', '):
+                        if req_code in reqs:
+                            rtc = RequirementTestCase(
+                                requirement_id=reqs[req_code].id,
+                                test_case_id=tc.id
+                            )
+                            db.session.add(rtc)
+                db.session.commit()
+                return redirect(url_for('project.detail', project_id=project.id))
+            except IntegrityError:
+                db.session.rollback()
+                flash('Project with this name already exists.')
     return render_template('project/import.html')
 
 @bp.before_app_request
@@ -151,4 +218,4 @@ def load_project():
     if project_id is None:
         g.project = None
     else:
-        g.project = get_project(project_id)
+        g.project = db.session.get(Project, project_id)
