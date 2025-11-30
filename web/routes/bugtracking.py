@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, g
 from db import db, Bug
 from decorators import perm_to_view_required, perm_to_edit_required
@@ -9,7 +10,7 @@ bp = Blueprint('bugtracking', __name__, url_prefix='/bugtracking')
 @perm_to_view_required
 def index():
     bugs = db.session.execute(
-        db.select(Bug).order_by(Bug.updated_at.desc())
+        db.select(Bug).order_by(Bug.created_at.desc())
     ).scalars().all()
     return render_template('bugtracking/index.html', bugs=bugs)
 
@@ -39,6 +40,7 @@ def edit(bug_id):
         bug.description = form.description.data
         bug.status = form.status.data
         bug.priority = form.priority.data
+        bug.updated_at = datetime.now()
         db.session.commit()
         return redirect(url_for('bugtracking.detail', bug_id=bug.id))
     return render_template('bugtracking/edit.html', form=form)
@@ -47,5 +49,16 @@ def edit(bug_id):
 @perm_to_edit_required
 def delete(bug_id):
     db.session.execute(db.delete(Bug).where(Bug.id == bug_id))
+    db.session.commit()
+    return redirect(url_for('bugtracking.index'))
+
+@bp.route('/reorder')
+@perm_to_edit_required
+def reorder():
+    bugs = db.session.execute(
+        db.select(Bug).order_by(Bug.order)
+    ).scalars().all()
+    for index, bug in enumerate(bugs):
+        bug.order = index + 1
     db.session.commit()
     return redirect(url_for('bugtracking.index'))

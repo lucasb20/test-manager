@@ -45,6 +45,7 @@ class TestSuiteForm(Form):
     description = TextAreaField('Description', [validators.Optional(), validators.Length(max=500)])
 
 class BugForm(Form):
-    description = StringField('Description', [validators.InputRequired(), validators.Length(max=200)])
+    title = StringField('Title', [validators.InputRequired(), validators.Length(max=80)])
+    description = StringField('Description', [validators.Optional(), validators.Length(max=200)])
     priority = SelectField('Priority', choices=[('High', 'High'), ('Medium', 'Medium'), ('Low', 'Low')], validators=[validators.InputRequired()])
     status = SelectField('Status', choices=[('Open', 'Open'), ('Progress', 'Progress'), ('Closed', 'Closed')], validators=[validators.InputRequired()])

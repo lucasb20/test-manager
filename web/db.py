@@ -200,15 +200,29 @@ class TestResult(db.Model):
         ).scalar()
         return name or "Unknown"
 
+# TODO: Add relationships
 class Bug(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(80), nullable=False)
+    description = db.Column(db.String(200), default=None)
     project_id = db.Column(db.ForeignKey('project.id'))
     reported_by = db.Column(db.ForeignKey('user.id'))
     status = db.Column(db.String(50), nullable=False)
     priority = db.Column(db.String(50), nullable=False)
+    order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now)
+
+    @property
+    def code_with_prefix(self):
+        return code_with_prefix("BUG", self.order)
+
+    @property
+    def last_order(self):
+        last_bug_order = db.session.execute(
+            db.select(Bug.order).filter_by(project_id=self.project_id).order_by(Bug.order.desc())
+        ).scalars().first()
+        return last_bug_order or 0
 
     @property
     def reporter(self):
