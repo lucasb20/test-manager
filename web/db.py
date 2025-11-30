@@ -200,7 +200,6 @@ class TestResult(db.Model):
         ).scalar()
         return name or "Unknown"
 
-# TODO: Add relationships
 class Bug(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80), nullable=False)
@@ -230,3 +229,8 @@ class Bug(db.Model):
             db.select(User.name).filter_by(id=self.reported_by)
         ).scalar()
         return name or "Unknown"
+
+class BugTestCase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    bug_id = db.Column(db.ForeignKey('bug.id'))
+    test_case_id = db.Column(db.ForeignKey('test_case.id'))
