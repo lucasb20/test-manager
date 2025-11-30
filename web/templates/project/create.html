@@ -5,10 +5,10 @@
 <h2>Create a New Project</h2>
 <form method="post">
     <div class="mb-3">
-        {{ render_field(form.name, class="form-control", id="name") }}
+        {{ render_field(form.name, class="form-control") }}
     </div>
     <div class="mb-3">
-        {{ render_field(form.description, class="form-control", id="description") }}
+        {{ render_field(form.description, class="form-control") }}
     </div>
     <button type="submit" class="btn btn-primary">Create Project</button>
     <a href="{{ url_for('project.index') }}" class="btn btn-secondary">Back to List</a>

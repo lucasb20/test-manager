@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Bug Tracking</h2>
+<p><strong>Description:</strong> {{ bug.description }}</p>
+<p><strong>Status:</strong> {{ bug.status }}</p>
+<p><strong>Priority:</strong> {{ bug.priority }}</p>
+<a href="{{ url_for('bugtracking.edit', bug_id=bug.id) }}" class="btn btn-primary">Edit</a>
+<a href="{{ url_for('bugtracking.index') }}" class="btn btn-secondary">Back to List</a>
+{% endblock %}

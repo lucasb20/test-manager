@@ -199,3 +199,20 @@ class TestResult(db.Model):
             db.select(User.name).filter_by(id=self.executed_by)
         ).scalar()
         return name or "Unknown"
+
+class Bug(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(200), nullable=False)
+    project_id = db.Column(db.ForeignKey('project.id'))
+    reported_by = db.Column(db.ForeignKey('user.id'))
+    status = db.Column(db.String(50), nullable=False)
+    priority = db.Column(db.String(50), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
+    @property
+    def reporter(self):
+        name = db.session.execute(
+            db.select(User.name).filter_by(id=self.reported_by)
+        ).scalar()
+        return name or "Unknown"
