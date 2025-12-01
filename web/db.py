@@ -97,7 +97,7 @@ class Requirement(db.Model):
     @property
     def last_order(self):
         last_req_order = db.session.execute(
-            db.select(Requirement.order).filter_by(project_id=self.project_id).order_by(Requirement.order.desc())
+            db.select(Requirement.order).filter_by(project_id=self.project_id).order_by(Requirement.order.desc()).limit(1)
         ).scalars().first()
         return last_req_order or 0
 
@@ -133,7 +133,7 @@ class TestCase(db.Model):
     @property
     def last_order(self):
         last_tc_order = db.session.execute(
-            db.select(TestCase.order).filter_by(project_id=self.project_id).order_by(TestCase.order.desc())
+            db.select(TestCase.order).filter_by(project_id=self.project_id).order_by(TestCase.order.desc()).limit(1)
         ).scalars().first()
         return last_tc_order or 0
 
@@ -167,8 +167,18 @@ class TestSuiteCase(db.Model):
     order = db.Column(db.Integer, default=0)
 
     @property
-    def testcase(self):
-        return db.session.get(TestCase, self.test_case_id)
+    def testcase_code(self):
+        tc_order = db.session.execute(
+            db.select(TestCase.order).filter_by(id=self.test_case_id)
+        ).scalar()
+        return code_with_prefix("TC", tc_order) if tc_order else "Unknown"
+
+    @property
+    def testcase_title(self):
+        title = db.session.execute(
+            db.select(TestCase.title).filter_by(id=self.test_case_id)
+        ).scalar()
+        return title or "Unknown"
 
 class TestRun(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -178,11 +188,11 @@ class TestRun(db.Model):
     testresults = db.relationship('TestResult', backref='test_run', lazy=True, cascade="all, delete-orphan")
 
     @property
-    def name(self):
-        name = db.session.execute(
-            db.select(TestSuite.name).filter_by(id=self.test_suite_id)
-        ).scalar()
-        return name or "Unnamed Test Suite"
+    def duration(self):
+        durations = db.session.execute(
+            db.select(TestResult.duration).filter_by(test_run_id=self.id)
+        ).scalars().all()
+        return sum([duration for duration in durations])
 
     @property
     def next_case(self):
@@ -198,13 +208,14 @@ class TestResult(db.Model):
     result = db.Column(db.String(50))
     executed_at = db.Column(db.DateTime, default=datetime.now)
     notes = db.Column(db.String(200))
+    duration = db.Column(db.Integer)
 
     @property
-    def test_case_code(self):
-        test_case = db.session.execute(
+    def testcase_code(self):
+        order = db.session.execute(
             db.select(TestCase.order).filter_by(id=self.test_case_id)
         ).scalar()
-        return code_with_prefix("TC", test_case) if test_case else "Unknown"
+        return code_with_prefix("TC", order) if order else "Unknown"
 
     @property
     def executor(self):
@@ -233,7 +244,7 @@ class Bug(db.Model):
     @property
     def last_order(self):
         last_bug_order = db.session.execute(
-            db.select(Bug.order).filter_by(project_id=self.project_id).order_by(Bug.order.desc())
+            db.select(Bug.order).filter_by(project_id=self.project_id).order_by(Bug.order.desc()).limit(1)
         ).scalars().first()
         return last_bug_order or 0
 

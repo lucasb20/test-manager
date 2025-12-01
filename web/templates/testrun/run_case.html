@@ -10,7 +10,7 @@
 <p><strong>Expected Results</strong>: {{ testcase.expected_result }}</p>
 <form method="post" action="{{ url_for('testrun.run_case', testrun_id=testrun.id, index=index) }}">
     <div class="mb-3">
-        <select id="status" name="status" class="form-select" required>
+        <select name="status" class="form-select" required>
             <option value="" disabled selected>Select status</option>
             <option value="pass">Pass</option>
             <option value="fail">Fail</option>
@@ -19,9 +19,26 @@
     </div>
     <div class="mb-3">
         <label for="notes" class="form-label">Notes:</label>
-        <textarea id="notes" name="notes" class="form-control" maxlength="200"></textarea>
+        <textarea name="notes" class="form-control" maxlength="200"></textarea>
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
     <a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Pause</a>
 </form>
+
+<script>
+    let start_time;
+    document.addEventListener('DOMContentLoaded', function() {
+        start_time = Date.now();
+    });
+    document.querySelector('select[name="status"]').addEventListener('change', function() {
+        const elapsed_time = Date.now() - start_time;
+        if (!(this.form.querySelector('input[name="duration"]'))) {
+            let input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'duration';
+            input.value = Math.floor(elapsed_time / 1000);
+            this.form.appendChild(input);
+        }
+    });
+</script>
 {% endblock %}

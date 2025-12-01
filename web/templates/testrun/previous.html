@@ -1,27 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Previous Test Executions</h2>
+<h2>Previous Test Executions - {{ ts_name }}</h2>
 
-<a href="{{ url_for('testrun.index', testsuite_id=testsuite_id) }}" class="btn btn-secondary">Back to Test Execution</a>
+<div class="mb-3">
+    <a href="{{ url_for('testrun.index', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-secondary">Back to Test Execution</a>
+</div>
 
 <table class="table">
     <thead class="table-dark table-striped table-bordered mt-3">
         <tr>
-            <th>Name</th>
             <th>Executed Cases</th>
             <th>Status</th>
             <th>Created At</th>
+            <th>Duration</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         {% for testrun in testruns %}
             <tr>
-                <td>{{ testrun.name }}</td>
                 <td>{{ testrun.next_case }}</td>
                 <td>{{ testrun.status }}</td>
                 <td>{{ testrun.created_at | format_datetime }}</td>
+                <td>{{ testrun.duration }}s</td>
                 <td>
                     {% if testrun.status == 'finished' %}
                         <a href="{{ url_for('testrun.summary', testrun_id=testrun.id) }}">View Summary</a>

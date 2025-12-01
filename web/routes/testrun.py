@@ -1,6 +1,6 @@
 from flask import Blueprint, request, render_template, redirect, url_for, g, flash, Response
 from decorators import perm_to_view_required, perm_to_edit_required
-from db import db, TestCase, TestSuiteCase, TestRun, TestResult
+from db import db, TestCase, TestSuite, TestSuiteCase, TestRun, TestResult
 from utils import create_csv
 
 bp = Blueprint('testrun', __name__, url_prefix='/testrun')
@@ -36,7 +36,10 @@ def previous(testsuite_id):
     testruns = db.session.execute(
         db.select(TestRun).filter_by(test_suite_id=testsuite_id).order_by(TestRun.created_at.desc())
     ).scalars().all()
-    return render_template('testrun/previous.html', testruns=testruns, testsuite_id=testsuite_id)
+    ts_name = db.session.execute(
+        db.select(TestSuite.name).filter_by(id=testsuite_id)
+    ).scalar()
+    return render_template('testrun/previous.html', testruns=testruns, ts_name=ts_name)
 
 @bp.route('/<int:testrun_id>/delete', methods=['POST'])
 @perm_to_edit_required
@@ -64,12 +67,14 @@ def run_case(testrun_id, index):
     if request.method == 'POST':
         result = request.form['status']
         notes = request.form['notes']
+        duration = request.form['duration']
         testresult = TestResult(
             test_run_id=testrun.id,
             test_case_id=testcase.id,
             executed_by=g.user.id,
             result=result,
-            notes=notes
+            notes=notes,
+            duration=int(duration)
         )
         db.session.add(testresult)
         db.session.commit()
@@ -105,17 +110,21 @@ def export(testrun_id):
     results = db.session.execute(
         db.select(TestResult).filter_by(test_run_id=testrun.id)
     ).scalars().all()
-    data = [("Test Case Code", "Status", "Executed By", "Executed At", "Notes")]
+    data = [("Test Case Code", "Status", "Executed By", "Executed At", "Duration", "Notes")]
     for result in results:
         data.append((
-            result.test_case_code,
+            result.testcase_code,
             result.result,
             result.executor,
             result.executed_at.strftime("%Y-%m-%d %H:%M"),
+            result.duration,
             result.notes
         ))
     csv_data = create_csv(data)
-    filename = f"testrun_{testrun.name.casefold()}.csv"
+    name = db.session.execute(
+        db.select(TestSuite.name).filter_by(id=testrun.test_suite_id)
+    ).scalar()
+    filename = f"testrun_{name.casefold()}.csv"
     response = Response(
         csv_data,
         mimetype="text/csv",
