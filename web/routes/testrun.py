@@ -41,15 +41,9 @@ def previous(testsuite_id):
 @bp.route('/<int:testrun_id>/delete', methods=['POST'])
 @perm_to_edit_required
 def delete(testrun_id):
-    testsuite_id = db.session.execute(
-        db.select(TestRun.test_suite_id).where(TestRun.id == testrun_id)
-    ).scalar()
-    db.session.execute(
-        db.delete(TestResult).where(TestResult.test_run_id == testrun_id)
-    )
-    db.session.execute(
-        db.delete(TestRun).where(TestRun.id == testrun_id)
-    )
+    testrun = db.get_or_404(TestRun, testrun_id)
+    testsuite_id = testrun.test_suite_id
+    db.session.delete(testrun)
     db.session.commit()
     return redirect(url_for('testrun.previous', testsuite_id=testsuite_id))
 

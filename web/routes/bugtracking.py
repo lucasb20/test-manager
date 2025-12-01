@@ -51,7 +51,8 @@ def edit(bug_id):
 @bp.route('/<int:bug_id>/delete', methods=['POST'])
 @perm_to_edit_required
 def delete(bug_id):
-    db.session.execute(db.delete(Bug).where(Bug.id == bug_id))
+    bug = db.get_or_404(Bug, bug_id)
+    db.session.delete(bug)
     db.session.commit()
     return redirect(url_for('bugtracking.index'))
 

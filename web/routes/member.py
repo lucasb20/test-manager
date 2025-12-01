@@ -45,6 +45,7 @@ def edit(member_id):
 @bp.route("/<int:member_id>/delete", methods=["POST"])
 @perm_to_manage_required
 def delete(member_id):
-    db.session.execute(db.delete(ProjectMember).where(ProjectMember.id == member_id))
+    member = db.get_or_404(ProjectMember, member_id)
+    db.session.delete(member)
     db.session.commit()
     return redirect(url_for('member.index'))

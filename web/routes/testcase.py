@@ -70,15 +70,8 @@ def edit(testcase_id):
 @bp.route('/<int:testcase_id>/delete', methods=['POST'])
 @perm_to_edit_required
 def delete(testcase_id):
-    db.session.execute(
-        db.delete(RequirementTestCase).where(RequirementTestCase.test_case_id == testcase_id)
-    )
-    db.session.execute(
-        db.delete(TestSuiteCase).where(TestSuiteCase.test_case_id == testcase_id)
-    )
-    db.session.execute(
-        db.delete(TestCase).where(TestCase.id == testcase_id)
-    )
+    testcase = db.get_or_404(TestCase, testcase_id)
+    db.session.delete(testcase)
     db.session.commit()
     return redirect(url_for('testcase.index'))
 

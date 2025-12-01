@@ -77,41 +77,8 @@ def edit(project_id):
 @bp.route('/<int:project_id>/delete', methods=['POST'])
 @perm_to_manage_required
 def delete(project_id):
-    db.session.execute(
-        db.delete(ProjectMember).where(ProjectMember.project_id == project_id)
-    )
-    rtcs = db.session.execute(
-        db.select(RequirementTestCase).join(TestCase).filter(TestCase.project_id == project_id)
-    ).scalars().all()
-    for rtc in rtcs:
-        db.session.delete(rtc)
-    db.session.execute(
-        db.delete(Requirement).where(Requirement.project_id == project_id)
-    )
-    tscs = db.session.execute(
-        db.select(TestSuiteCase).join(TestSuite).filter(TestSuite.project_id == project_id)
-    ).scalars().all()
-    for tsc in tscs:
-        db.session.delete(tsc)
-    db.session.execute(
-        db.delete(TestCase).where(TestCase.project_id == project_id)
-    )
-    trs = db.session.execute(
-        db.select(TestResult).join(TestRun).join(TestSuite).filter(TestSuite.project_id == project_id)
-    ).scalars().all()
-    for tr in trs:
-        db.session.delete(tr)
-    tes = db.session.execute(
-        db.select(TestRun).join(TestSuite).filter(TestSuite.project_id == project_id)
-    ).scalars().all()
-    for te in tes:
-        db.session.delete(te)
-    db.session.execute(
-        db.delete(TestSuite).where(TestSuite.project_id == project_id)
-    )
-    db.session.execute(
-        db.delete(Project).where(Project.id == project_id)
-    )
+    project = db.get_or_404(Project, project_id)
+    db.session.delete(project)
     db.session.commit()
     return redirect(url_for('project.index'))
 
