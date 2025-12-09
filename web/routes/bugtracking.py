@@ -19,7 +19,8 @@ def index():
 def create():
     form = BugForm(request.form)
     if request.method == 'POST' and form.validate():
-        bug = Bug(description=form.description.data, status=form.status.data, priority=form.priority.data, reported_by=g.user.id, project_id=g.project.id)
+        bug = Bug(title=form.title.data, description=form.description.data, status=form.status.data, priority=form.priority.data, reported_by=g.user.id, project_id=g.project.id)
+        bug.order = bug.last_order + 1
         db.session.add(bug)
         db.session.commit()
         return redirect(url_for('bugtracking.index'))
@@ -40,6 +41,7 @@ def edit(bug_id):
     bug = db.get_or_404(Bug, bug_id)
     form = BugForm(request.form, obj=bug)
     if request.method == 'POST' and form.validate():
+        bug.title = form.title.data
         bug.description = form.description.data
         bug.status = form.status.data
         bug.priority = form.priority.data
@@ -60,7 +62,7 @@ def delete(bug_id):
 @perm_to_edit_required
 def reorder():
     bugs = db.session.execute(
-        db.select(Bug).order_by(Bug.order)
+        db.select(Bug).order_by(Bug.created_at.asc())
     ).scalars().all()
     for index, bug in enumerate(bugs):
         bug.order = index + 1
