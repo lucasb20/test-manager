@@ -27,31 +27,6 @@ class Project(db.Model):
         ).scalar()
         return manager or "Unassigned"
 
-    # TODO: Remove these properties
-    @property
-    def requirements_titles(self):
-        return db.session.execute(
-            db.select(Requirement.title).filter_by(project_id=self.id)
-        ).scalars()
-
-    @property
-    def testcases_titles(self):
-        return db.session.execute(
-            db.select(TestCase.title).filter_by(project_id=self.id)
-        ).scalars()
-
-    @property
-    def testcases_preconditions(self):
-        return db.session.execute(
-            db.select(TestCase.preconditions).filter_by(project_id=self.id).distinct()
-        ).scalars()
-
-    @property
-    def testcases_expected_results(self):
-        return db.session.execute(
-            db.select(TestCase.expected_result).filter_by(project_id=self.id).distinct()
-        ).scalars()
-
 class ProjectMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.ForeignKey('project.id'))
@@ -104,8 +79,6 @@ class TestCase(db.Model):
     is_automated = db.Column(db.Boolean, nullable=False, default=False)
     project_id = db.Column(db.ForeignKey('project.id'))
     order = db.Column(db.Integer, default=0)
-    # TODO: Implement soft delete
-    # is_deleted = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now)
 
@@ -173,9 +146,9 @@ class TestRun(db.Model):
 
     @property
     def next_case(self):
-        return len(db.session.execute(
-            db.select(TestResult.id).filter_by(test_run_id=self.id)
-        ).scalars().all())
+        return db.session.execute(
+            db.select(db.func.count()).select_from(TestResult).filter_by(test_run_id=self.id)
+        ).scalar()
 
 class TestResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)

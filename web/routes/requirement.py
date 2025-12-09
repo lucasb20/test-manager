@@ -35,7 +35,10 @@ def create():
         db.session.add(requirement)
         db.session.commit()
         return redirect(url_for('requirement.detail', requirement_id=requirement.id))
-    return render_template('requirement/create.html', form=form)
+    titles = db.session.execute(
+        db.select(Requirement.title).filter_by(project_id=g.project.id)
+    ).scalars().all()
+    return render_template('requirement/create.html', form=form, titles=titles)
 
 @bp.route('/<int:requirement_id>/edit', methods=['GET', 'POST'])
 @perm_to_edit_required

@@ -1,6 +1,7 @@
 from datetime import date, datetime
 import re
-from flask import Blueprint, render_template, request, redirect, url_for, g, Response
+import requests
+from flask import Blueprint, render_template, request, redirect, url_for, g, Response, flash
 from decorators import perm_to_view_required, perm_to_edit_required
 from utils import create_csv
 from db import TestSuiteCase, db, TestCase, Requirement, RequirementTestCase
@@ -16,6 +17,39 @@ def normalize_steps(steps):
             row += '.'
         norm_steps.append(f"{i}. {row}")
     return "\n".join(norm_steps)
+
+def get_similarity_from_ml(text):
+    testcases = db.session.execute(
+        db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
+    ).scalars().all()
+    data = {
+        "text": text,
+        "corpus": [],
+        "ids": []
+    }
+    for tc in testcases:
+        combined_text = tc.title + " " + tc.steps + " " + tc.expected_result
+        if text != combined_text:
+            data["corpus"].append(combined_text)
+            data["ids"].append(tc.id)
+    try:
+        response = requests.post(
+            "http://ml-service:5000/similarity",
+            json=data,
+            timeout=2
+        )
+        response.raise_for_status()
+        max_similarity = 0.0
+        max_id = None
+        for res in response.json():
+            similarity = float(res["similarity"])
+            if similarity > max_similarity:
+                max_similarity = similarity
+                max_id = int(res["id"])
+        if max_similarity >= 0.5:
+            return max_id
+    except requests.RequestException:
+        pass
 
 bp = Blueprint('testcase', __name__, url_prefix='/testcase')
 
@@ -47,8 +81,28 @@ def create():
         testcase.order = testcase.last_order + 1
         db.session.add(testcase)
         db.session.commit()
+        # TODO: Use background job for ML processing
+        similarity_id = get_similarity_from_ml(testcase.title + " " + testcase.steps + " " + testcase.expected_result)
+        if similarity_id is not None:
+            rtcs = db.session.execute(
+                db.select(Requirement).join(RequirementTestCase).filter(
+                    RequirementTestCase.test_case_id == similarity_id
+                )
+            ).scalars().all()
+            for req in rtcs:
+                db.session.add(RequirementTestCase(requirement_id=req.id, test_case_id=testcase.id))
+            db.session.commit()
+            flash('Suggested associated requirements have been added.')
         return redirect(url_for('testcase.detail', testcase_id=testcase.id))
-    return render_template('testcase/create.html', form=form)
+    tcs_data = db.session.execute(
+        db.select(TestCase.title, TestCase.preconditions, TestCase.expected_result).filter_by(project_id=g.project.id)
+    ).all()
+    suggestions = {
+        'titles': {td[0] for td in tcs_data},
+        'preconditions': {td[1] for td in tcs_data},
+        'expected_results': {td[2] for td in tcs_data}
+    }
+    return render_template('testcase/create.html', form=form, suggestions=suggestions)
 
 @bp.route('/<int:testcase_id>/edit', methods=['GET', 'POST'])
 @perm_to_edit_required

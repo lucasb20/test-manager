@@ -5,20 +5,20 @@
 <h2>Test Case</h2>
 <form method="post">
     <div class="mb-3">
-        {{ render_field(form.title, class="form-control") }}
+        {{ render_field(form.title, class="form-control", list="title_suggestions", autocomplete="off", autofocus=True) }}
     </div>
     <div class="mb-3">
         <label for="project" class="form-label">Project</label>
         <input type="text" name="project" id="project" class="form-control" value="{{ g.project.name }}" disabled>
     </div>
     <div class="mb-3">
-        {{ render_field(form.preconditions, class="form-control") }}
+        {{ render_field(form.preconditions, class="form-control", list="precondition_suggestions", autocomplete="off") }}
     </div>
     <div class="mb-3">
         {{ render_field(form.steps, class="form-control") }}
     </div>
     <div class="mb-3">
-        {{ render_field(form.expected_result, class="form-control") }}
+        {{ render_field(form.expected_result, class="form-control", list="expected_result_suggestions", autocomplete="off") }}
     </div>
     <div class="mb-3">
         {{ render_field(form.is_functional, class="form-select") }}
@@ -30,20 +30,20 @@
     <a href="{{ url_for('testcase.index') }}" class="btn btn-secondary">Back to List</a>
 </form>
 
-<datalist id="titles">
-    {% for title in g.project.testcases_titles %}
+<datalist id="title_suggestions">
+    {% for title in suggestions.titles %}
     <option value="{{ title }}">
     {% endfor %}
 </datalist>
 
-<datalist id="preconditions">
-    {% for precondition in g.project.testcases_preconditions %}
+<datalist id="precondition_suggestions">
+    {% for precondition in suggestions.preconditions %}
     <option value="{{ precondition }}">
     {% endfor %}
 </datalist>
 
-<datalist id="expected_results">
-    {% for expected_result in g.project.testcases_expected_results %}
+<datalist id="expected_result_suggestions">
+    {% for expected_result in suggestions.expected_results %}
     <option value="{{ expected_result }}">
     {% endfor %}
 </datalist>

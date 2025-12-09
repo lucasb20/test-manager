@@ -5,7 +5,7 @@
 <h2>Requirements</h2>
 <form method="post">
     <div class="mb-3">
-        {{ render_field(form.title, class="form-control", list="titles", autofocus=True) }}
+        {{ render_field(form.title, class="form-control", list="title_suggestions", autocomplete="off", autofocus=True) }}
     </div>
     <div class="mb-3">
         <label for="project" class="form-label">Project</label>
@@ -20,8 +20,8 @@
     <button type="submit" class="btn btn-primary">Create Requirement</button>
 </form>
 
-<datalist id="titles">
-    {% for title in g.project.requirements_titles %}
+<datalist id="title_suggestions">
+    {% for title in titles %}
     <option value="{{ title }}">
     {% endfor %}
 </datalist>
