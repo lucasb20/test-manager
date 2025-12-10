@@ -3,6 +3,5 @@ Flask-SQLAlchemy
 Flask-Migrate
 WTForms
 pyjwt
-requests
 PyMySQL
 gunicorn
