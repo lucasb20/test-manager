@@ -28,9 +28,8 @@ def get_similarity_from_ml(text):
         "ids": []
     }
     for tc in testcases:
-        combined_text = tc.title + " " + tc.steps + " " + tc.expected_result
-        if text != combined_text:
-            data["corpus"].append(combined_text)
+        if text != tc.title:
+            data["corpus"].append(tc.title)
             data["ids"].append(tc.id)
     try:
         response = requests.post(
@@ -80,7 +79,7 @@ def create():
         testcase.order = testcase.last_order + 1
         db.session.add(testcase)
         db.session.commit()
-        similarity_id = get_similarity_from_ml(testcase.title + " " + testcase.steps + " " + testcase.expected_result)
+        similarity_id = get_similarity_from_ml(testcase.title)
         rtcs = db.session.execute(
             db.select(Requirement).join(RequirementTestCase).filter(
                 RequirementTestCase.test_case_id == similarity_id
