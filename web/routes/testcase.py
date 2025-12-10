@@ -4,7 +4,7 @@ import requests
 from flask import Blueprint, render_template, request, redirect, url_for, g, Response, flash
 from decorators import perm_to_view_required, perm_to_edit_required
 from utils import create_csv
-from db import TestSuiteCase, db, TestCase, Requirement, RequirementTestCase
+from db import db, TestCase, Requirement, RequirementTestCase
 from forms import TestCaseForm
 
 def normalize_steps(steps):

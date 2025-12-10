@@ -2,7 +2,7 @@ from datetime import date
 from flask import Blueprint, render_template, request, g, redirect, url_for, session, send_file, flash
 from sqlalchemy.exc import IntegrityError
 from decorators import login_required, perm_to_view_required, perm_to_manage_required
-from db import db, Project, ProjectMember, Requirement, RequirementTestCase, TestCase, TestRun, TestResult, TestSuite, TestSuiteCase
+from db import db, Project, ProjectMember, Requirement, RequirementTestCase, TestCase
 from utils import create_json, import_json
 from forms import ProjectForm
 
