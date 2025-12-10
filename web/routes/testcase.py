@@ -46,8 +46,7 @@ def get_similarity_from_ml(text):
             if similarity > max_similarity:
                 max_similarity = similarity
                 max_id = int(res["id"])
-        if max_similarity >= 0.5:
-            return max_id
+        return max_id
     except requests.RequestException:
         pass
 
@@ -81,18 +80,16 @@ def create():
         testcase.order = testcase.last_order + 1
         db.session.add(testcase)
         db.session.commit()
-        # TODO: Use background job for ML processing
         similarity_id = get_similarity_from_ml(testcase.title + " " + testcase.steps + " " + testcase.expected_result)
-        if similarity_id is not None:
-            rtcs = db.session.execute(
-                db.select(Requirement).join(RequirementTestCase).filter(
-                    RequirementTestCase.test_case_id == similarity_id
-                )
-            ).scalars().all()
-            for req in rtcs:
-                db.session.add(RequirementTestCase(requirement_id=req.id, test_case_id=testcase.id))
-            db.session.commit()
-            flash('Suggested associated requirements have been added.')
+        rtcs = db.session.execute(
+            db.select(Requirement).join(RequirementTestCase).filter(
+                RequirementTestCase.test_case_id == similarity_id
+            )
+        ).scalars().all()
+        for req in rtcs:
+            db.session.add(RequirementTestCase(requirement_id=req.id, test_case_id=testcase.id))
+        db.session.commit()
+        flash('Suggested associated requirements have been added.')
         return redirect(url_for('testcase.detail', testcase_id=testcase.id))
     tcs_data = db.session.execute(
         db.select(TestCase.title, TestCase.preconditions, TestCase.expected_result).filter_by(project_id=g.project.id)
