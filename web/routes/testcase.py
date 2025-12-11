@@ -82,17 +82,17 @@ def create():
         db.session.add(testcase)
         db.session.commit()
         # TODO: Use background job for ML processing
-        similarity_id = get_similarity_from_ml(testcase.title + " " + testcase.steps + " " + testcase.expected_result)
-        if similarity_id is not None:
-            rtcs = db.session.execute(
-                db.select(Requirement).join(RequirementTestCase).filter(
-                    RequirementTestCase.test_case_id == similarity_id
-                )
-            ).scalars().all()
-            for req in rtcs:
-                db.session.add(RequirementTestCase(requirement_id=req.id, test_case_id=testcase.id))
-            db.session.commit()
-            flash('Suggested associated requirements have been added.')
+        # similarity_id = get_similarity_from_ml(testcase.title + " " + testcase.steps + " " + testcase.expected_result)
+        # if similarity_id is not None:
+        #     rtcs = db.session.execute(
+        #         db.select(Requirement).join(RequirementTestCase).filter(
+        #             RequirementTestCase.test_case_id == similarity_id
+        #         )
+        #     ).scalars().all()
+        #     for req in rtcs:
+        #         db.session.add(RequirementTestCase(requirement_id=req.id, test_case_id=testcase.id))
+        #     db.session.commit()
+        #     flash('Suggested associated requirements have been added.')
         return redirect(url_for('testcase.detail', testcase_id=testcase.id))
     tcs_data = db.session.execute(
         db.select(TestCase.title, TestCase.preconditions, TestCase.expected_result).filter_by(project_id=g.project.id)
