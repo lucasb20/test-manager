@@ -2,7 +2,7 @@ from datetime import date
 from flask import Blueprint, render_template, request, g, redirect, url_for, session, send_file, flash
 from sqlalchemy.exc import IntegrityError
 from decorators import login_required, perm_to_view_required, perm_to_manage_required
-from db import db, Project, ProjectMember, Requirement, RequirementTestCase, TestCase, TestRun, TestResult, TestSuite, TestSuiteCase
+from db import db, Project, ProjectMember, Requirement, RequirementTestCase, TestCase
 from utils import create_json, import_json
 from forms import ProjectForm
 
@@ -54,7 +54,7 @@ def create():
             db.session.add(project_member)
             db.session.commit()
             return redirect(url_for('project.detail', project_id=project.id))
-        except IntegrityError as e:
+        except IntegrityError:
             db.session.rollback()
             flash('Project with this name already exists.')
     return render_template('project/create.html', form=form)
@@ -77,41 +77,8 @@ def edit(project_id):
 @bp.route('/<int:project_id>/delete', methods=['POST'])
 @perm_to_manage_required
 def delete(project_id):
-    db.session.execute(
-        db.delete(ProjectMember).where(ProjectMember.project_id == project_id)
-    )
-    rtcs = db.session.execute(
-        db.select(RequirementTestCase).join(TestCase).filter(TestCase.project_id == project_id)
-    ).scalars().all()
-    for rtc in rtcs:
-        db.session.delete(rtc)
-    db.session.execute(
-        db.delete(Requirement).where(Requirement.project_id == project_id)
-    )
-    tscs = db.session.execute(
-        db.select(TestSuiteCase).join(TestSuite).filter(TestSuite.project_id == project_id)
-    ).scalars().all()
-    for tsc in tscs:
-        db.session.delete(tsc)
-    db.session.execute(
-        db.delete(TestCase).where(TestCase.project_id == project_id)
-    )
-    trs = db.session.execute(
-        db.select(TestResult).join(TestRun).join(TestSuite).filter(TestSuite.project_id == project_id)
-    ).scalars().all()
-    for tr in trs:
-        db.session.delete(tr)
-    tes = db.session.execute(
-        db.select(TestRun).join(TestSuite).filter(TestSuite.project_id == project_id)
-    ).scalars().all()
-    for te in tes:
-        db.session.delete(te)
-    db.session.execute(
-        db.delete(TestSuite).where(TestSuite.project_id == project_id)
-    )
-    db.session.execute(
-        db.delete(Project).where(Project.id == project_id)
-    )
+    project = db.get_or_404(Project, project_id)
+    db.session.delete(project)
     db.session.commit()
     return redirect(url_for('project.index'))
 
@@ -138,7 +105,7 @@ def export(project_id):
         'testcases': {
             tc.code_with_prefix: {
                 'title': tc.title,
-                'requirements': tc.requirements_codes,
+                'requirements': ', '.join(tc.requirements_codes),
                 'preconditions': tc.preconditions,
                 'steps': tc.steps,
                 'expected_result': tc.expected_result,
@@ -175,7 +142,7 @@ def import_project():
                 db.session.flush()
                 project_member = ProjectMember(project_id=project.id, user_id=g.user.id, role="manager")
                 db.session.add(project_member)
-                reqs = dict()
+                reqs = {}
                 for code, req_data in data.get('requirements', {}).items():
                     req = Requirement(
                         project_id=project.id,

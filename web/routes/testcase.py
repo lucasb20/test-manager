@@ -1,10 +1,9 @@
 from datetime import date, datetime
 import re
-import requests
-from flask import Blueprint, render_template, request, redirect, url_for, g, Response, flash
+from flask import Blueprint, render_template, request, redirect, url_for, g, Response
 from decorators import perm_to_view_required, perm_to_edit_required
 from utils import create_csv
-from db import TestSuiteCase, db, TestCase, Requirement, RequirementTestCase
+from db import db, TestCase, Requirement, RequirementTestCase
 from forms import TestCaseForm
 
 def normalize_steps(steps):
@@ -17,39 +16,6 @@ def normalize_steps(steps):
             row += '.'
         norm_steps.append(f"{i}. {row}")
     return "\n".join(norm_steps)
-
-def get_similarity_from_ml(text):
-    testcases = db.session.execute(
-        db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
-    ).scalars().all()
-    data = {
-        "text": text,
-        "corpus": [],
-        "ids": []
-    }
-    for tc in testcases:
-        combined_text = tc.title + " " + tc.steps + " " + tc.expected_result
-        if text != combined_text:
-            data["corpus"].append(combined_text)
-            data["ids"].append(tc.id)
-    try:
-        response = requests.post(
-            "http://ml-service:5000/similarity",
-            json=data,
-            timeout=2
-        )
-        response.raise_for_status()
-        max_similarity = 0.0
-        max_id = None
-        for res in response.json():
-            similarity = float(res["similarity"])
-            if similarity > max_similarity:
-                max_similarity = similarity
-                max_id = int(res["id"])
-        if max_similarity >= 0.5:
-            return max_id
-    except requests.RequestException:
-        pass
 
 bp = Blueprint('testcase', __name__, url_prefix='/testcase')
 
@@ -81,18 +47,6 @@ def create():
         testcase.order = testcase.last_order + 1
         db.session.add(testcase)
         db.session.commit()
-        # TODO: Use background job for ML processing
-        # similarity_id = get_similarity_from_ml(testcase.title + " " + testcase.steps + " " + testcase.expected_result)
-        # if similarity_id is not None:
-        #     rtcs = db.session.execute(
-        #         db.select(Requirement).join(RequirementTestCase).filter(
-        #             RequirementTestCase.test_case_id == similarity_id
-        #         )
-        #     ).scalars().all()
-        #     for req in rtcs:
-        #         db.session.add(RequirementTestCase(requirement_id=req.id, test_case_id=testcase.id))
-        #     db.session.commit()
-        #     flash('Suggested associated requirements have been added.')
         return redirect(url_for('testcase.detail', testcase_id=testcase.id))
     tcs_data = db.session.execute(
         db.select(TestCase.title, TestCase.preconditions, TestCase.expected_result).filter_by(project_id=g.project.id)
@@ -124,15 +78,8 @@ def edit(testcase_id):
 @bp.route('/<int:testcase_id>/delete', methods=['POST'])
 @perm_to_edit_required
 def delete(testcase_id):
-    db.session.execute(
-        db.delete(RequirementTestCase).where(RequirementTestCase.test_case_id == testcase_id)
-    )
-    db.session.execute(
-        db.delete(TestSuiteCase).where(TestSuiteCase.test_case_id == testcase_id)
-    )
-    db.session.execute(
-        db.delete(TestCase).where(TestCase.id == testcase_id)
-    )
+    testcase = db.get_or_404(TestCase, testcase_id)
+    db.session.delete(testcase)
     db.session.commit()
     return redirect(url_for('testcase.index'))
 
@@ -187,7 +134,7 @@ def export():
     ).scalars().all()
     data = [("ID", "Title", "Requirements", "Preconditions", "Steps", "Expected Result", "Type", "Automated")]
     for tc in testcases:
-        data.append((tc.code_with_prefix, tc.title, tc.requirements_codes, tc.preconditions, tc.steps, tc.expected_result, tc.functional, tc.automation))
+        data.append((tc.code_with_prefix, tc.title, ', '.join(tc.requirements_codes), tc.preconditions, tc.steps, tc.expected_result, tc.functional, tc.automation))
     csv_data = create_csv(data)
     filename = f"testcases_{g.project.name.casefold()}_{date.today()}.csv"
     response = Response(

@@ -11,6 +11,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
+    member_associations = db.relationship('ProjectMember', backref='member', lazy=True, cascade="all, delete-orphan")
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -19,6 +20,11 @@ class Project(db.Model):
     manager_id = db.Column(db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    members = db.relationship('ProjectMember', backref='project', lazy=True, cascade="all, delete-orphan")
+    requirements = db.relationship('Requirement', backref='project', lazy=True, cascade="all, delete-orphan")
+    test_cases = db.relationship('TestCase', backref='project', lazy=True, cascade="all, delete-orphan")
+    test_suites = db.relationship('TestSuite', backref='project', lazy=True, cascade="all, delete-orphan")
+    bugs = db.relationship('Bug', backref='project', lazy=True, cascade="all, delete-orphan")
 
     @property
     def manager(self):
@@ -57,6 +63,7 @@ class Requirement(db.Model):
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now)
+    testcase_associations = db.relationship('RequirementTestCase', backref='requirement', lazy=True, cascade="all, delete-orphan")
 
     @property
     def code_with_prefix(self):
@@ -65,7 +72,7 @@ class Requirement(db.Model):
     @property
     def last_order(self):
         last_req_order = db.session.execute(
-            db.select(Requirement.order).filter_by(project_id=self.project_id).order_by(Requirement.order.desc())
+            db.select(Requirement.order).filter_by(project_id=self.project_id).order_by(Requirement.order.desc()).limit(1)
         ).scalars().first()
         return last_req_order or 0
 
@@ -81,6 +88,9 @@ class TestCase(db.Model):
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now)
+    requirement_associations = db.relationship('RequirementTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
+    bug_associations = db.relationship('BugTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
+    testsuite_associations = db.relationship('TestSuiteCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
 
     @property
     def code_with_prefix(self):
@@ -91,12 +101,12 @@ class TestCase(db.Model):
         reqs_orders = db.session.execute(
             db.select(Requirement.order).join(RequirementTestCase).filter(RequirementTestCase.test_case_id == self.id)
         ).scalars().all()
-        return ', '.join([code_with_prefix("REQ", order) for order in reqs_orders])
+        return [code_with_prefix("REQ", order) for order in reqs_orders]
 
     @property
     def last_order(self):
         last_tc_order = db.session.execute(
-            db.select(TestCase.order).filter_by(project_id=self.project_id).order_by(TestCase.order.desc())
+            db.select(TestCase.order).filter_by(project_id=self.project_id).order_by(TestCase.order.desc()).limit(1)
         ).scalars().first()
         return last_tc_order or 0
 
@@ -120,6 +130,8 @@ class TestSuite(db.Model):
     project_id = db.Column(db.ForeignKey('project.id'))
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    testcase_associations = db.relationship('TestSuiteCase', backref='test_suite', lazy=True, cascade="all, delete-orphan")
+    testruns = db.relationship('TestRun', backref='test_suite', lazy=True, cascade="all, delete-orphan")
 
 class TestSuiteCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -128,21 +140,32 @@ class TestSuiteCase(db.Model):
     order = db.Column(db.Integer, default=0)
 
     @property
-    def testcase(self):
-        return db.session.get(TestCase, self.test_case_id)
+    def testcase_code(self):
+        tc_order = db.session.execute(
+            db.select(TestCase.order).filter_by(id=self.test_case_id)
+        ).scalar()
+        return code_with_prefix("TC", tc_order) if tc_order else "Unknown"
+
+    @property
+    def testcase_title(self):
+        title = db.session.execute(
+            db.select(TestCase.title).filter_by(id=self.test_case_id)
+        ).scalar()
+        return title or "Unknown"
 
 class TestRun(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     test_suite_id = db.Column(db.ForeignKey('test_suite.id'))
     status = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.now)
+    testresults = db.relationship('TestResult', backref='test_run', lazy=True, cascade="all, delete-orphan")
 
     @property
-    def name(self):
-        name = db.session.execute(
-            db.select(TestSuite.name).filter_by(id=self.test_suite_id)
-        ).scalar()
-        return name or "Unnamed Test Suite"
+    def duration(self):
+        durations = db.session.execute(
+            db.select(TestResult.duration).filter_by(test_run_id=self.id)
+        ).scalars().all()
+        return sum(duration for duration in durations)
 
     @property
     def next_case(self):
@@ -158,13 +181,14 @@ class TestResult(db.Model):
     result = db.Column(db.String(50))
     executed_at = db.Column(db.DateTime, default=datetime.now)
     notes = db.Column(db.String(200))
+    duration = db.Column(db.Integer)
 
     @property
-    def test_case_code(self):
-        test_case = db.session.execute(
+    def testcase_code(self):
+        order = db.session.execute(
             db.select(TestCase.order).filter_by(id=self.test_case_id)
         ).scalar()
-        return code_with_prefix("TC", test_case) if test_case else "Unknown"
+        return code_with_prefix("TC", order) if order else "Unknown"
 
     @property
     def executor(self):
@@ -172,3 +196,39 @@ class TestResult(db.Model):
             db.select(User.name).filter_by(id=self.executed_by)
         ).scalar()
         return name or "Unknown"
+
+class Bug(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(80), nullable=False)
+    description = db.Column(db.String(200), default=None)
+    project_id = db.Column(db.ForeignKey('project.id'))
+    reported_by = db.Column(db.ForeignKey('user.id'))
+    status = db.Column(db.String(50), nullable=False)
+    priority = db.Column(db.String(50), nullable=False)
+    order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now)
+    testcase_associations = db.relationship('BugTestCase', backref='bug', lazy=True, cascade="all, delete-orphan")
+
+    @property
+    def code_with_prefix(self):
+        return code_with_prefix("BUG", self.order)
+
+    @property
+    def last_order(self):
+        last_bug_order = db.session.execute(
+            db.select(Bug.order).filter_by(project_id=self.project_id).order_by(Bug.order.desc()).limit(1)
+        ).scalars().first()
+        return last_bug_order or 0
+
+    @property
+    def reporter(self):
+        name = db.session.execute(
+            db.select(User.name).filter_by(id=self.reported_by)
+        ).scalar()
+        return name or "Unknown"
+
+class BugTestCase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    bug_id = db.Column(db.ForeignKey('bug.id'))
+    test_case_id = db.Column(db.ForeignKey('test_case.id'))

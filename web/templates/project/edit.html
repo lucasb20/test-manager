@@ -5,10 +5,10 @@
 <h2>Project Edit</h2>
 <form method="post">
     <div class="mb-3">
-        {{ render_field(form.name, class="form-control", id="name") }}
+        {{ render_field(form.name, class="form-control") }}
     </div>
     <div class="mb-3">
-        {{ render_field(form.description, class="form-control", id="description") }}
+        {{ render_field(form.description, class="form-control") }}
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="{{ url_for('project.detail', project_id=request.view_args['project_id']) }}" class="btn btn-secondary">Cancel</a>

@@ -29,7 +29,7 @@
         {% for testcase in testcases %}
         <tr>
             <td>{{ testcase.code_with_prefix }}</td>
-            <td>{{ testcase.requirements_codes }}</td>
+            <td>{{ testcase.requirements_codes | join(', ') }}</td>
             <td><a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="text-info">{{ testcase.title }}</a></td>
             <td>{{ testcase.preconditions }}</td>
             <td>{{ testcase.steps }}</td>

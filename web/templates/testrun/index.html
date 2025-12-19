@@ -22,8 +22,8 @@
         {% for tsc in tscs %}
         <tr>
             <td>{{ loop.index }}</td>
-            <td>{{ tsc.testcase.code_with_prefix }}</td>
-            <td>{{ tsc.testcase.title }}</td>
+            <td>{{ tsc.testcase_code }}</td>
+            <td>{{ tsc.testcase_title }}</td>
             <td>
                 {% if loop.index > 1 %}
                 <form method="post" action="{{ url_for('testrun.change_order', testsuitecase_id1=tsc.id, testsuitecase_id2=tscs[loop.index0 - 1].id) }}">

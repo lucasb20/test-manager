@@ -6,10 +6,12 @@
     <a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Back to Previous Test Execution</a>
     <a href="{{ url_for('testrun.export', testrun_id=testrun.id) }}" class="btn btn-info">Export CSV</a>
 </div>
-<p><strong>Total Tests:</strong> {{ total_tests }}</p>
-<p><strong>Passed Tests:</strong> {{ passed_tests }}</p>
-<p><strong>Failed Tests:</strong> {{ failed_tests }}</p>
-<p><strong>Skipped Tests:</strong> {{ skipped_tests }}</p>
+<p><strong>Total Tests:</strong> {{ data.total_tests }}</p>
+<p><strong>Passed Tests:</strong> {{ data.passed_tests }}</p>
+<p><strong>Failed Tests:</strong> {{ data.failed_tests }}</p>
+<p><strong>Skipped Tests:</strong> {{ data.skipped_tests }}</p>
+<p><strong>Total Duration:</strong> {{ data.total_duration }}s</p>
+<p><strong>Percent Passed:</strong> {{ data.percent_passed }}%</p>
 <table class="table">
     <thead class="table-dark table-striped table-bordered mt-3">
         <tr>
@@ -17,6 +19,7 @@
             <th>Result</th>
             <th>Executed By</th>
             <th>Executed At</th>
+            <th>Duration</th>
             <th>Notes</th>
         </tr>
     </thead>
@@ -24,10 +27,11 @@
     <tr
         class="{% if result.result == 'pass' %}table-success{% elif result.result == 'fail' %}table-danger{% else %}table-warning{% endif %}"
     >
-        <td>{{ result.test_case_code }}</td>
+        <td>{{ result.testcase_code }}</td>
         <td>{{ result.result }}</td>
         <td>{{ result.executor }}</td>
         <td>{{ result.executed_at | format_datetime }}</td>
+        <td>{{ result.duration }}s</td>
         <td>{{ result.notes }}</td>
     </tr>
     {% endfor %}

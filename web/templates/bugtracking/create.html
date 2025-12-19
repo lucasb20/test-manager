@@ -2,27 +2,25 @@
 {% from "_formhelpers.html" import render_field %}
 
 {% block content %}
-<h2>Requirements</h2>
+<h2>Bug Tracking</h2>
 <form method="post">
     <div class="mb-3">
-        {{ render_field(form.title, class="form-control", list="title_suggestions", autocomplete="off", autofocus=True) }}
+        {{ render_field(form.title, class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ render_field(form.description, class="form-control") }}
     </div>
     <div class="mb-3">
         <label for="project" class="form-label">Project</label>
         <input type="text" class="form-control" value="{{ g.project.name }}" disabled>
     </div>
     <div class="mb-3">
-        {{ render_field(form.description, class="form-control") }}
+        {{ render_field(form.status, class="form-select") }}
     </div>
     <div class="mb-3">
         {{ render_field(form.priority, class="form-select") }}
     </div>
-    <button type="submit" class="btn btn-primary">Create Requirement</button>
+    <button type="submit" class="btn btn-primary">Create Bug</button>
+    <a href="{{ url_for('bugtracking.index') }}" class="btn btn-secondary">Back to List</a>
 </form>
-
-<datalist id="title_suggestions">
-    {% for title in titles %}
-    <option value="{{ title }}">
-    {% endfor %}
-</datalist>
 {% endblock %}

@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Associate Test Cases to Requirement: {{ requirement.code_with_prefix }} - {{ requirement.title }}</h2>
-<form method="post" action="{{ url_for('requirement.associate', requirement_id=requirement.id) }}">
+<h2>Associate Test Cases to Bug: {{ bug.code_with_prefix }} - {{ bug.title }}</h2>
+<form method="post" action="{{ url_for('bugtracking.associate', bug_id=bug.id) }}">
   {% for testcase in testcases %}
   <div class="form mb-3">
     <input type="checkbox" id="testcase_{{ testcase.id }}" name="testcase_ids" value="{{ testcase.id }}" {% if testcase.id in associated_ids %}checked{% endif %}>
@@ -10,6 +10,6 @@
   </div>
   {% endfor %}
   <button type="submit" class="btn btn-primary">Save</button>
-  <a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}" class="btn btn-secondary">Cancel</a>
+  <a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}

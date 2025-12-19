@@ -57,12 +57,8 @@ def edit(requirement_id):
 @bp.route('/<int:requirement_id>/delete', methods=['POST'])
 @perm_to_edit_required
 def delete(requirement_id):
-    db.session.execute(
-        db.delete(RequirementTestCase).where(RequirementTestCase.requirement_id == requirement_id)
-    )
-    db.session.execute(
-        db.delete(Requirement).where(Requirement.id == requirement_id)
-    )
+    requirement = db.get_or_404(Requirement, requirement_id)
+    db.session.delete(requirement)
     db.session.commit()
     return redirect(url_for('requirement.index'))
 

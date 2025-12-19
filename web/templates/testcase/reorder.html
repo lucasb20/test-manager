@@ -20,7 +20,7 @@
         {% for testcase in testcases %}
         <tr>
             <td>{{ loop.index }}</td>
-            <td>{{ testcase.requirements_codes }}</td>
+            <td>{{ testcase.requirements_codes | join(', ') }}</td>
             <td>{{ testcase.title }}</td>
             <td>
                 {% if loop.index > 1 %}

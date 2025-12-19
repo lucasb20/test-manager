@@ -36,15 +36,6 @@ services:
       db:
         condition: service_healthy
 
-  ml_service:
-    build:
-      context: ml_service
-    restart: always
-    ports:
-      - 5000:5000
-    networks:
-      - frontnet
-
   maildev:
     image: maildev/maildev:latest
     restart: always

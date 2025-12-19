@@ -6,11 +6,11 @@
 <form method="post" action="{{ url_for('member.create') }}">
     <div class="mb-3">
         <label for="email" class="form-label">Email</label>
-        <input type="text" class="form-control" id="email" name="email" required>
+        <input type="text" class="form-control" required>
     </div>
     <div class="mb-3">
         <label for="role" class="form-label">Role</label>
-        <select id="role" name="role" class="form-select" required>
+        <select class="form-select" required>
             <option value="" disabled selected>Select permission</option>
             <option value="viewer">Viewer</option>
             <option value="editor">Editor</option>

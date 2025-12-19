@@ -9,7 +9,7 @@
     </div>
     <div class="mb-3">
         <label for="project" class="form-label">Project</label>
-        <input type="text" name="project" id="project" class="form-control" value="{{ g.project.name }}" disabled>
+        <input type="text" class="form-control" value="{{ g.project.name }}" disabled>
     </div>
     <div class="mb-3">
         {{ render_field(form.preconditions, class="form-control", list="precondition_suggestions", autocomplete="off") }}

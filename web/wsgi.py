@@ -11,6 +11,7 @@ from routes.testrun import bp as testrun_bp
 from routes.requirement import bp as requirement_bp
 from routes.profile import bp as profile_bp
 from routes.member import bp as member_bp
+from routes.bugtracking import bp as bugtracking_bp
 from utils import format_datetime, database_uri
 
 app = Flask(__name__)
@@ -26,6 +27,7 @@ app.register_blueprint(testsuite_bp)
 app.register_blueprint(requirement_bp)
 app.register_blueprint(profile_bp)
 app.register_blueprint(member_bp)
+app.register_blueprint(bugtracking_bp)
 
 db.init_app(app)
 Migrate(app, db)
