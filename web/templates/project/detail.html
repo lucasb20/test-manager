@@ -31,5 +31,10 @@
         <input type="hidden" name="next" value="{{ url_for('member.index', project_id=project.id) }}">
         <button type="submit" class="btn btn-info">View Members</button>
     </form>
+    <form class="p-1" action="{{ url_for('project.select') }}" method="post">
+        <input type="hidden" name="project_id" value="{{ project.id }}">
+        <input type="hidden" name="next" value="{{ url_for('bugtracking.index', project_id=project.id) }}">
+        <button type="submit" class="btn btn-info">View Bugs</button>
+    </form>
 </div>
 {% endblock %}

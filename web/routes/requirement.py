@@ -60,6 +60,12 @@ def delete(requirement_id):
     requirement = db.get_or_404(Requirement, requirement_id)
     db.session.delete(requirement)
     db.session.commit()
+    requirements = db.session.execute(
+        db.select(Requirement).filter_by(project_id=g.project.id).order_by(Requirement.order.asc())
+    ).scalars().all()
+    for index, req in enumerate(requirements):
+        req.order = index + 1
+    db.session.commit()
     return redirect(url_for('requirement.index'))
 
 @bp.route('/reorder', methods=['GET'])
@@ -68,9 +74,6 @@ def reorder():
     requirements = db.session.execute(
         db.select(Requirement).filter_by(project_id=g.project.id).order_by(Requirement.order.asc())
     ).scalars().all()
-    for index, req in enumerate(requirements):
-        req.order = index + 1
-    db.session.commit()
     return render_template('requirement/reorder.html', requirements=requirements)
 
 @bp.route('/<int:requirement_id1>/<int:requirement_id2>', methods=['POST'])

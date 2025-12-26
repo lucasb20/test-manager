@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Test Execution</h2>
+<p><strong>ID</strong>: {{ testcase.code_with_prefix }}</p>
+<p><strong>Title</strong>: {{ testcase.title }}</p>
+<p><strong>Preconditions</strong>: {{ testcase.preconditions }}</p>
+<p><strong>Steps</strong>: {{ testcase.steps | replace('\n','<br/>') | safe }}</p>
+<p><strong>Expected Results</strong>: {{ testcase.expected_result }}</p>
+<form method="post">
+	<div class="mb-3">
+		<select name="status" class="form-select" required>
+			<option value="pass" {% if testresult.result == 'pass' %}selected{% endif %}>Pass</option>
+			<option value="fail" {% if testresult.result == 'fail' %}selected{% endif %}>Fail</option>
+			<option value="skip" {% if testresult.result == 'skip' %}selected{% endif %}>Skip</option>
+		</select>
+	</div>
+	<div class="mb-3">
+		<label for="notes" class="form-label">Notes:</label>
+		<textarea name="notes" class="form-control" maxlength="200">{{ testresult.notes }}</textarea>
+	</div>
+	<button type="submit" class="btn btn-primary">Update Test Result</button>
+	<a href="{{ url_for('testrun.summary', testrun_id=testresult.test_run_id) }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

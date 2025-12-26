@@ -5,7 +5,6 @@
 <div class="mb-3">
     <a href="{{ url_for('bugtracking.create') }}" class="btn btn-primary">Report New Bug</a>
     <a href="{{ url_for('project.select', next=url_for('bugtracking.index')) }}" class="btn btn-secondary">Select Project</a>
-    <a href="{{ url_for('bugtracking.reorder') }}" class="btn btn-secondary">Reorder Bugs</a>
 </div>
 <table class="table mt-3">
     <thead class="table-dark table-striped table-bordered mt-3">

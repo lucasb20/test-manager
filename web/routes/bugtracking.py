@@ -58,17 +58,6 @@ def delete(bug_id):
     db.session.commit()
     return redirect(url_for('bugtracking.index'))
 
-@bp.route('/reorder')
-@perm_to_edit_required
-def reorder():
-    bugs = db.session.execute(
-        db.select(Bug).order_by(Bug.created_at.asc())
-    ).scalars().all()
-    for index, bug in enumerate(bugs):
-        bug.order = index + 1
-    db.session.commit()
-    return redirect(url_for('bugtracking.index'))
-
 @bp.route('/<int:bug_id>/associate', methods=['GET', 'POST'])
 @perm_to_edit_required
 def associate(bug_id):

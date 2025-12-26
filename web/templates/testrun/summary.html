@@ -10,7 +10,7 @@
 <p><strong>Passed Tests:</strong> {{ data.passed_tests }}</p>
 <p><strong>Failed Tests:</strong> {{ data.failed_tests }}</p>
 <p><strong>Skipped Tests:</strong> {{ data.skipped_tests }}</p>
-<p><strong>Total Duration:</strong> {{ data.total_duration }}s</p>
+<p><strong>Total Duration:</strong> {{ data.total_duration }}s ({{ data.total_duration_min}} min)</p>
 <p><strong>Percent Passed:</strong> {{ data.percent_passed }}%</p>
 <table class="table">
     <thead class="table-dark table-striped table-bordered mt-3">
@@ -21,18 +21,19 @@
             <th>Executed At</th>
             <th>Duration</th>
             <th>Notes</th>
+	    <th>Actions</th>
         </tr>
     </thead>
     {% for result in results %}
-    <tr
-        class="{% if result.result == 'pass' %}table-success{% elif result.result == 'fail' %}table-danger{% else %}table-warning{% endif %}"
-    >
-        <td>{{ result.testcase_code }}</td>
-        <td>{{ result.result }}</td>
+    <tr>
+	<td><a href="{{ url_for('testcase.detail', testcase_id=result.test_case_id) }}" class="text-info">{{ result.testcase_code }}</a></td>
+        <td class="{% if result.result == 'pass' %}table-success{% elif result.result == 'fail' %}table-danger{% else %}table-warning{% endif %}"
+>{{ result.result }}</td>
         <td>{{ result.executor }}</td>
         <td>{{ result.executed_at | format_datetime }}</td>
         <td>{{ result.duration }}s</td>
         <td>{{ result.notes }}</td>
+	<td><a href="{{ url_for('testrun.edit_case', testresult_id=result.id) }}" class="btn btn-secondary btn-sm">Edit</a></td>
     </tr>
     {% endfor %}
 </table>

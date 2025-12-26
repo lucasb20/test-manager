@@ -11,9 +11,6 @@ def index(testsuite_id):
     tscs = db.session.execute(
         db.select(TestSuiteCase).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.asc())
     ).scalars().all()
-    for index, tsc in enumerate(tscs):
-        tsc.order = index
-    db.session.commit()
     return render_template('testrun/index.html', tscs=tscs)
 
 @bp.route('/<int:testsuite_id>/create', methods=['GET'])
@@ -65,21 +62,30 @@ def run_case(testrun_id, index):
         return redirect(url_for('testrun.summary', testrun_id=testrun.id))
     testcase = testcases[index]
     if request.method == 'POST':
-        result = request.form['status']
-        notes = request.form['notes']
-        duration = request.form['duration']
         testresult = TestResult(
             test_run_id=testrun.id,
             test_case_id=testcase.id,
             executed_by=g.user.id,
-            result=result,
-            notes=notes,
-            duration=int(duration)
+            result=request.form['status'],
+            notes=request.form['notes'],
+            duration=int(request.form['duration'])
         )
         db.session.add(testresult)
         db.session.commit()
         return redirect(url_for('testrun.run_case', testrun_id=testrun.id, index=index + 1))
     return render_template('testrun/run_case.html', testrun=testrun, testcase=testcase, index=index, total=len(testcases))
+
+@bp.route('/<int:testresult_id>/edit', methods=['GET', 'POST'])
+@perm_to_edit_required
+def edit_case(testresult_id):
+    testresult = db.get_or_404(TestResult, testresult_id)
+    if request.method == 'POST':
+        testresult.result = request.form['status']
+        testresult.notes = request.form['notes']
+        db.session.commit()
+        return redirect(url_for('testrun.summary', testrun_id=testresult.test_run_id))
+    testcase = db.session.get(TestCase, testresult.test_case_id)
+    return render_template('testrun/edit.html', testresult=testresult, testcase=testcase)
 
 @bp.route('/<int:testrun_id>/summary', methods=['GET'])
 @perm_to_view_required
@@ -92,14 +98,14 @@ def summary(testrun_id):
     passed_tests = sum(1 for r in results if r.result == 'pass')
     skipped_tests = sum(1 for r in results if r.result == 'skip')
     failed_tests = total_tests - passed_tests - skipped_tests
-    duration = sum(r.duration for r in results)
     percent_passed = round((passed_tests / total_tests * 100), 2) if total_tests > 0 else 0
     data = {
         'total_tests': total_tests,
         'passed_tests': passed_tests,
         'failed_tests': failed_tests,
         'skipped_tests': skipped_tests,
-        'total_duration': duration,
+        'total_duration': testrun.duration,
+        'total_duration_min': testrun.duration // 60,
         'percent_passed': percent_passed
     }
     return render_template('testrun/summary.html', testrun=testrun, results=results, data=data)

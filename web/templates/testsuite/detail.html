@@ -5,6 +5,7 @@
 
 <p><strong>Name:</strong> {{ testsuite.name }}</p>
 <p><strong>Description:</strong> {{ testsuite.description }}</p>
+<p><strong>Total:</strong> {{ testcases | length }} test cases</p>
 <p><strong>Created At:</strong> {{ testsuite.created_at | format_datetime }}</p>
 <p><strong>Updated At:</strong> {{ testsuite.updated_at | format_datetime }}</p>
 

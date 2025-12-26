@@ -9,7 +9,7 @@ bp = Blueprint('testsuite', __name__, url_prefix='/testsuite')
 @perm_to_view_required
 def index():
     testsuites = db.session.execute(
-        db.select(TestSuite).filter_by(project_id=g.project.id)
+        db.select(TestSuite).filter_by(project_id=g.project.id).order_by(TestSuite.created_at.desc())
     ).scalars().all()
     return render_template('testsuite/index.html', testsuites=testsuites)
 
@@ -42,7 +42,7 @@ def edit(testsuite_id):
         testsuite.name = form.name.data
         testsuite.description = form.description.data
         db.session.commit()
-        return redirect(url_for('testsuite.index'))
+        return redirect(url_for('testsuite.detail', testsuite_id=testsuite.id))
     return render_template('testsuite/edit.html', form=form)
 
 @bp.route('/<int:testsuite_id>/delete', methods=['POST'])
@@ -64,9 +64,13 @@ def associate(testsuite_id):
     ).scalars().all()
     if request.method == 'POST':
         testcase_ids = request.form.getlist('testcase_ids')
+        last_order = db.session.execute(
+            db.select(TestSuiteCase.order).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.desc()).limit(1)
+        ).scalars().first() or 0
         for testcase in testcases:
             if str(testcase.id) in testcase_ids and testcase.id not in associated_ids:
-                db.session.add(TestSuiteCase(test_suite_id=testsuite_id, test_case_id=testcase.id))
+                db.session.add(TestSuiteCase(test_suite_id=testsuite_id, test_case_id=testcase.id, order=last_order+1))
+                last_order += 1
             elif str(testcase.id) not in testcase_ids and testcase.id in associated_ids:
                 db.session.execute(
                     db.delete(TestSuiteCase).where(TestSuiteCase.test_suite_id == testsuite_id, TestSuiteCase.test_case_id == testcase.id)

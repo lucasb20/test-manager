@@ -143,16 +143,20 @@ def import_project():
                 project_member = ProjectMember(project_id=project.id, user_id=g.user.id, role="manager")
                 db.session.add(project_member)
                 reqs = {}
+                order = 1
                 for code, req_data in data.get('requirements', {}).items():
                     req = Requirement(
                         project_id=project.id,
                         title=req_data.get('title'),
                         description=req_data.get('description', ''),
-                        priority=req_data.get('priority', 'High')
+                        priority=req_data.get('priority', 'High'),
+                        order=order
                     )
                     db.session.add(req)
                     reqs[code] = req
+                    order += 1
                 db.session.flush()
+                order = 1
                 for tc_data in data.get('testcases', {}).values():
                     tc = TestCase(
                         project_id=project.id,
@@ -161,7 +165,8 @@ def import_project():
                         steps=tc_data.get('steps'),
                         expected_result=tc_data.get('expected_result'),
                         is_functional=tc_data.get('is_functional', True),
-                        is_automated=tc_data.get('is_automated', False)
+                        is_automated=tc_data.get('is_automated', False),
+                        order=order
                     )
                     db.session.add(tc)
                     db.session.flush()
@@ -172,6 +177,7 @@ def import_project():
                                 test_case_id=tc.id
                             )
                             db.session.add(rtc)
+                    order += 1
                 db.session.commit()
                 return redirect(url_for('project.detail', project_id=project.id))
             except IntegrityError:

@@ -22,7 +22,7 @@ The server environment should consist of:
 - Python > 3.12
 - DBMS
   - MySQL x.x.x
-  - MariaDB x.x
+  - MariaDB 10.x
   - Postgres x.x
 
 Tested on web browsers:
@@ -49,6 +49,6 @@ The usual command is: `tar zxvf <filename.tar.gz>`
 
 At this point, you may want to rename the directory to something other than 'test-manager'.
 
-3. Launch the web installer
-We'll create the necessary database tables and a basic configuration file.
-On your web server, go to http://yoursite/ or a similar URL and follow the instructions.
+3. Launch the web installer.
+
+Good luck.

@@ -12,6 +12,6 @@
         {{ render_field(form.description, class="form-control") }}
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
-    <a href="{{ url_for('testsuite.detail', testsuite_id=testsuite.id) }}" class="btn btn-secondary">Cancel</a>
+    <a href="{{ url_for('testsuite.detail', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}

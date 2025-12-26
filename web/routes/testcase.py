@@ -81,6 +81,12 @@ def delete(testcase_id):
     testcase = db.get_or_404(TestCase, testcase_id)
     db.session.delete(testcase)
     db.session.commit()
+    testcases = db.session.execute(
+        db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
+    ).scalars().all()
+    for index, tc in enumerate(testcases):
+        tc.order = index + 1
+    db.session.commit()
     return redirect(url_for('testcase.index'))
 
 @bp.route('/reorder', methods=['GET'])
@@ -89,9 +95,6 @@ def reorder():
     testcases = db.session.execute(
         db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())
     ).scalars().all()
-    for index, tc in enumerate(testcases):
-        tc.order = index + 1
-    db.session.commit()
     return render_template('testcase/reorder.html', testcases=testcases)
 
 @bp.route('/<int:testcase_id1>/<int:testcase_id2>', methods=['POST'])
