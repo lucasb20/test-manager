@@ -34,18 +34,22 @@ def create():
 @perm_to_manage_required
 def edit(member_id):
     member = db.get_or_404(ProjectMember, member_id)
+    if member.user_id == g.user.id or member.user_id == g.project.manager_id:
+        flash('Forbidden action.')
+        return redirect(url_for('member.index'))
     if request.method == "POST":
-        role = request.form.get("role")
-        if member:
-            member.role = role
-            db.session.commit()
-            return redirect(url_for('member.detail', member_id=member_id))
+        member.role = request.form.get("role")
+        db.session.commit()
+        return redirect(url_for('member.detail', member_id=member_id))
     return render_template("member/edit.html", member=member)
 
 @bp.route("/<int:member_id>/delete", methods=["POST"])
 @perm_to_manage_required
 def delete(member_id):
     member = db.get_or_404(ProjectMember, member_id)
-    db.session.delete(member)
-    db.session.commit()
+    if member.user_id == g.project.manager_id:
+        flash('Forbidden action.')
+    else:
+        db.session.delete(member)
+        db.session.commit()
     return redirect(url_for('member.index'))

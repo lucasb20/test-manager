@@ -9,7 +9,6 @@ class User(db.Model):
     name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     member_associations = db.relationship('ProjectMember', backref='member', lazy=True, cascade="all, delete-orphan")
 
@@ -220,6 +219,13 @@ class Bug(db.Model):
             db.select(Bug.order).filter_by(project_id=self.project_id).order_by(Bug.order.desc()).limit(1)
         ).scalars().first()
         return last_bug_order or 0
+
+    @property
+    def testcases_codes(self):
+        tcs_orders = db.session.execute(
+            db.select(TestCase.order).join(BugTestCase).filter(BugTestCase.bug_id == self.id)
+        ).scalars().all()
+        return [code_with_prefix("TC", order) for order in tcs_orders]
 
     @property
     def reporter(self):

@@ -3,31 +3,33 @@
 {% block content %}
 <h2>Bug Tracking</h2>
 <div class="mb-3">
-    <a href="{{ url_for('bugtracking.create') }}" class="btn btn-primary">Report New Bug</a>
-    <a href="{{ url_for('project.select', next=url_for('bugtracking.index')) }}" class="btn btn-secondary">Select Project</a>
+	<a href="{{ url_for('bugtracking.create') }}" class="btn btn-primary">Report New Bug</a>
+	<a href="{{ url_for('project.select', next=url_for('bugtracking.index')) }}" class="btn btn-secondary">Select Project</a>
 </div>
 <table class="table mt-3">
-    <thead class="table-dark table-striped table-bordered mt-3">
-        <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Reporter</th>
-            <th>Last Update</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for bug in bugs %}
-        <tr>
-            <td>{{ bug.code_with_prefix }}</td>
-            <td><a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}">{{ bug.title }}</a></td>
-            <td>{{ bug.status }}</td>
-            <td>{{ bug.priority }}</td>
-            <td>{{ bug.reporter }}</td>
-            <td>{{ bug.updated_at | format_datetime }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
+	<thead class="table-dark table-striped table-bordered mt-3">
+		<tr>
+			<th>ID</th>
+			<th>Test Cases</th>
+			<th>Title</th>
+			<th>Status</th>
+			<th>Priority</th>
+			<th>Reporter</th>
+			<th>Last Update</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for bug in bugs %}
+		<tr>
+			<td>{{ bug.code_with_prefix }}</td>
+			<td>{{ bug.testcases_codes | join(', ') }}</td>
+			<td><a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}">{{ bug.title }}</a></td>
+			<td class="{% if bug.status == 'Closed' %}table-success{% elif bug.status == 'Progress' %}table-warning{% endif %}">{{ bug.status }}</td>
+			<td>{{ bug.priority }}</td>
+			<td>{{ bug.reporter }}</td>
+			<td>{{ bug.updated_at | format_datetime }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
 </table>
 {% endblock %}

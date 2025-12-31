@@ -11,12 +11,9 @@ bp = Blueprint('project', __name__, url_prefix='/project')
 @bp.route('/')
 @login_required
 def index():
-    if g.user.is_admin:
-        projects = db.session.execute(db.select(Project)).scalars().all()
-    else:
-        projects = db.session.execute(
-            db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)
-        ).scalars().all()
+    projects = db.session.execute(
+        db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)
+    ).scalars().all()
     return render_template('project/index.html', projects=projects)
 
 @bp.route('/select', methods=['GET', 'POST'])
@@ -27,19 +24,26 @@ def select():
         project_id = request.form['project_id']
         session['project_id'] = project_id
         return redirect(next_url or url_for('project.index'))
-    if g.user.is_admin:
-        projects = db.session.execute(db.select(Project)).scalars().all()
-    else:
-        projects = db.session.execute(
-            db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)
-        ).scalars().all()
+    projects = db.session.execute(
+        db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)
+    ).scalars().all()
     return render_template('project/select.html', projects=projects)
 
 @bp.route('/<int:project_id>')
 @perm_to_view_required
 def detail(project_id):
     project = db.get_or_404(Project, project_id)
-    return render_template('project/detail.html', project=project)
+    total_reqs = db.session.execute(
+        db.select(db.func.count()).select_from(Requirement).filter_by(project_id=project.id)
+    ).scalar()
+    total_tcs = db.session.execute(
+        db.select(db.func.count()).select_from(TestCase).filter_by(project_id=project.id)
+    ).scalar()
+    data = {
+            "total_reqs": total_reqs,
+            "total_tcs": total_tcs
+    }
+    return render_template('project/detail.html', project=project, data=data)
 
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required

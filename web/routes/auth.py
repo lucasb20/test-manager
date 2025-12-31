@@ -1,7 +1,6 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash, session, g, current_app
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy.exc import IntegrityError
-import click
 from utils import send_email, generate_reset_token, verify_reset_token
 from forms import RegistrationForm, LoginForm, ResetPasswordForm, ResetPasswordConfirmForm
 from db import db, User
@@ -72,16 +71,3 @@ def load_logged_in_user():
         g.user = None
     else:
         g.user = db.session.get(User, user_id)
-
-@bp.cli.command('create-admin')
-@click.argument('name')
-@click.argument('email')
-@click.argument('password')
-def create_admin(name, email, password):
-    try:
-        admin_user = User(name=name, email=email, password=generate_password_hash(password), is_admin=True)
-        db.session.add(admin_user)
-        db.session.commit()
-        click.echo(f'Admin user {name} created successfully.')
-    except IntegrityError:
-        click.echo('Error: Email already registered.')

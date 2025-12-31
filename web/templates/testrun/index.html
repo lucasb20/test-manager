@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Test Execution</h2>
+<h2>Test Run</h2>
 <div class="mb-3">
-    <a href="{{ url_for('testrun.create', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-primary">Start Test Execution</a>
-    <a href="{{ url_for('testrun.previous', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-info">View Previous Executions</a>
+    <a href="{{ url_for('testrun.create', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-primary">Start Test Run</a>
+    <a href="{{ url_for('testrun.previous', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-info">View Previous Runs</a>
     <a href="{{ url_for('testsuite.detail', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-secondary">Back to Test Suite</a>
 </div>
 {% if tscs %}

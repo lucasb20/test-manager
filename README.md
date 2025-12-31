@@ -18,7 +18,7 @@ The system will centralize test management, increasing the efficiency of QA team
 ## 2. System Requirements
 
 The server environment should consist of:
-- web-server: Nginx x.x
+- web-server: Nginx 1.13.x
 - Python > 3.12
 - DBMS
   - MySQL x.x.x
@@ -39,16 +39,4 @@ Use `docker-compose up` to start containers in the foreground.
 
 Below we detail the basic steps for installation on any system.
 
-1. First, transfer the file to your web server using your preferred method (ftp, scp, etc).
-
-You will need to telnet/ssh into the server machine for the next steps.
-
-2. Then unzip it to the desired directory.
-
-The usual command is: `tar zxvf <filename.tar.gz>`
-
-At this point, you may want to rename the directory to something other than 'test-manager'.
-
-3. Launch the web installer.
-
-Good luck.
+1. Good luck.

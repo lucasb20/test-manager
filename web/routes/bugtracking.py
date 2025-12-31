@@ -12,6 +12,9 @@ def index():
     bugs = db.session.execute(
         db.select(Bug).order_by(Bug.created_at.desc())
     ).scalars().all()
+    priority = {"High": 0, "Medium": 1, "Low": 2}
+    status = {"Open": 0, "Progress": 0, "Closed": 2}
+    bugs.sort(key=lambda b: ((status.get(b.status, 3)), priority.get(b.priority, 3)))
     return render_template('bugtracking/index.html', bugs=bugs)
 
 @bp.route('/create', methods=['GET', 'POST'])
@@ -23,7 +26,7 @@ def create():
         bug.order = bug.last_order + 1
         db.session.add(bug)
         db.session.commit()
-        return redirect(url_for('bugtracking.index'))
+        return redirect(url_for('bugtracking.detail,', bug_id=bug.id))
     return render_template('bugtracking/create.html', form=form)
 
 @bp.route('/<int:bug_id>')
