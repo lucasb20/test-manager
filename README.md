@@ -3,13 +3,13 @@ Software test management tool.
 
 # Contents
 
-- [Introduction](introduction)
-- [System Requirements](system-requirements)
-- [Installation](installation)
-- [Contributing](contributing)
-- [License](license)
+- [Description](#description)
+- [System Requirements](#system-requirements)
+- [Installation](#installation)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Introduction
+## Description
 
 Test Manager is a test management system that allows you to create, organize, execute, and track software test cases. Its focus is to replace scattered spreadsheets and documents with a centralized platform.
 
