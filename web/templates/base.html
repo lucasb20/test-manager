@@ -1,38 +1,36 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TestManager</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  </head>
-  <body class="bg-light">
-    <header class="d-flex justify-content-between align-items-center p-3 bg-primary mb-4">
-      <h1><a href="{{ url_for('index') }}" class="navbar-brand text-bg-primary">TestManager</a></h1>
-      <nav>
-        <ul class="nav nav-underline">
-          {% if g.user %}
-          <li class="nav-item"><a href="{{ url_for('bugtracking.index') }}" class="nav-link text-light">Bug Tracking</a></li>
-          <li class="nav-item"><a href="{{ url_for('testsuite.index') }}" class="nav-link text-light">Test Suites</a></li>
-          <li class="nav-item"><a href="{{ url_for('testcase.index') }}" class="nav-link text-light">Test Cases</a></li>
-          <li class="nav-item"><a href="{{ url_for('requirement.index') }}" class="nav-link text-light">Requirements</a></li>
-            <li class="nav-item"><a href="{{ url_for('project.index') }}" class="nav-link text-light">Projects</a></li>
-            <li class="nav-item"><a href="{{ url_for('profile.index') }}" class="btn btn-outline-light">{{ g.user.name }}</a></li>
-            <li class="nav-item"><a href="{{ url_for('auth.logout') }}" class="nav-link text-warning">Log Out</a></li>
-          {% else %}
-            <li class="nav-item"><a href="{{ url_for('auth.register') }}" class="nav-link text-light">Register</a></li>
-            <li class="nav-item"><a href="{{ url_for('auth.login') }}" class="nav-link text-light">Log In</a></li>
-          {% endif %}
-        </ul>
-      </nav>
-    </header>
-    <section class="container">
-      {% for message in get_flashed_messages() %}
-        <div class="alert alert-info" role="alert">{{ message }}</div>
-      {% endfor %}
-      {% block content %}{% endblock %}
-    </section>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>TestManager</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+	</head>
+	<body class="bg-light">
+		<header class="d-flex justify-content-between align-items-center p-3 bg-dark mb-3">
+			<h1><a href="{{ url_for('index') }}" class="navbar-brand text-light">TestManager</a></h1>
+			<nav>
+				<ul class="nav nav-underline">
+					{% if g.user %}
+					<li class="nav-item"><a href="{{ url_for('bugtracking.index') }}" class="nav-link text-light">Bug Tracking</a></li>
+					<li class="nav-item"><a href="{{ url_for('testsuite.index') }}" class="nav-link text-light">Test Suites</a></li>
+					<li class="nav-item"><a href="{{ url_for('testcase.index') }}" class="nav-link text-light">Test Cases</a></li>
+					<li class="nav-item"><a href="{{ url_for('requirement.index') }}" class="nav-link text-light">Requirements</a></li>
+					<li class="nav-item"><a href="{{ url_for('project.index') }}" class="nav-link text-light">Projects</a></li>
+					<li class="nav-item"><a href="{{ url_for('profile.index') }}" class="btn btn-outline-light">{{ g.user.name }}</a></li>
+					<li class="nav-item"><a href="{{ url_for('auth.logout') }}" class="nav-link text-warning">Log Out</a></li>
+					{% else %}
+					<li class="nav-item"><a href="{{ url_for('auth.register') }}" class="nav-link text-light">Register</a></li>
+					<li class="nav-item"><a href="{{ url_for('auth.login') }}" class="nav-link text-light">Log In</a></li>
+					{% endif %}
+				</ul>
+			</nav>
+		</header>
+		<section class="container">
+			{% for message in get_flashed_messages() %}
+			<div class="alert alert-info" role="alert">{{ message }}</div>
+			{% endfor %}
+			{% block content %}{% endblock %}
+		</section>
+	</body>
 </html>

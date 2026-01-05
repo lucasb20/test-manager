@@ -3,11 +3,13 @@ Software test management tool.
 
 # Contents
 
-1. [Introduction](#1-introduction)
-2. [System Requirements](#2-system-requirements)
-3. [Installation](#3-installation)
+- [Description](#description)
+- [System Requirements](#system-requirements)
+- [Installation](#installation)
+- [Contributing](#contributing)
+- [License](#license)
 
-## 1. Introduction
+## Description
 
 Test Manager is a test management system that allows you to create, organize, execute, and track software test cases. Its focus is to replace scattered spreadsheets and documents with a centralized platform.
 
@@ -15,7 +17,7 @@ Using generic tools like spreadsheets and documents to manage software testing i
 
 The system will centralize test management, increasing the efficiency of QA teams. This will lead to improved software quality, reduced bugs in production, and accelerated development cycles, allowing teams to focus on creating, not managing, documents.
 
-## 2. System Requirements
+## System Requirements
 
 The server environment should consist of:
 - web-server: Nginx 1.13.x
@@ -29,14 +31,14 @@ Tested on web browsers:
 - Firefox
 - Chrome
 
-## 3. Installation
-
-### With Docker
-
-Use `docker-compose up` to start containers in the foreground.
-
-### Without Docker
-
-Below we detail the basic steps for installation on any system.
+## Installation
 
 1. Good luck.
+
+## Contributing
+
+Whether you want to share ideas, report bugs, or implement new features, your contribution is welcome! Create a fork, make commits, and submit a pull request.
+
+## License
+
+This project is licensed under the [GLP-2.0 license](LICENSE).

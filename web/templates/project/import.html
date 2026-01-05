@@ -4,11 +4,11 @@
 <h2>Import Project</h2>
 
 <form method="post" enctype="multipart/form-data">
-    <div class="mb-3">
-        <label for="file" class="form-label">Select JSON File</label>
-        <input type="file" id="file" name="file" class="form-control" accept=".json" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Import Project</button>
-    <a href="{{ url_for('project.index') }}" class="btn btn-secondary">Back to List</a>
+	<div class="mb-3">
+		<label for="file" class="form-label">Select JSON File</label>
+		<input type="file" name="file" class="form-control" accept=".json" required>
+	</div>
+	<button type="submit" class="btn btn-primary">Import Project</button>
+	<a href="{{ url_for('project.index') }}" class="btn btn-secondary">Back to List</a>
 </form>
 {% endblock %}

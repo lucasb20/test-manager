@@ -1,6 +1,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for, g, flash, Response
 from decorators import perm_to_view_required, perm_to_edit_required
-from db import db, TestCase, TestSuite, TestSuiteCase, TestRun, TestResult
+from forms import BugForm
+from db import db, TestCase, TestSuite, TestSuiteCase, TestRun, TestResult, Bug, BugTestCase
 from utils import create_csv
 
 bp = Blueprint('testrun', __name__, url_prefix='/testrun')
@@ -77,7 +78,7 @@ def run_case(testrun_id, index):
 
 @bp.route('/<int:testresult_id>/edit', methods=['GET', 'POST'])
 @perm_to_edit_required
-def edit_case(testresult_id):
+def edit_result(testresult_id):
     testresult = db.get_or_404(TestResult, testresult_id)
     if request.method == 'POST':
         testresult.result = request.form['status']
@@ -109,6 +110,22 @@ def summary(testrun_id):
         'percent_passed': percent_passed
     }
     return render_template('testrun/summary.html', testrun=testrun, results=results, data=data)
+
+@bp.route('/<int:testresult_id>/report_bug', methods=['GET', 'POST'])
+@perm_to_edit_required
+def report_bug(testresult_id):
+    form = BugForm(request.form)
+    testresult = db.get_or_404(TestResult, testresult_id)
+    if request.method == 'POST' and form.validate():
+        bug = Bug(title=form.title.data, description=form.description.data, status=form.status.data, priority=form.priority.data, reported_by=g.user.id, project_id=g.project.id)
+        bug.order = bug.last_order + 1
+        db.session.add(bug)
+        db.session.flush()
+        db.session.add(BugTestCase(bug_id=bug.id, test_case_id=testresult.test_case_id))
+        db.session.commit()
+        return redirect(url_for('testrun.summary', testrun_id=testresult.test_run_id))
+    form.description.data = testresult.notes
+    return render_template('bugtracking/create.html', form=form)
 
 @bp.route('/change_order/<int:testsuitecase_id1>/<int:testsuitecase_id2>', methods=['POST'])
 @perm_to_edit_required

@@ -26,14 +26,19 @@
 	</thead>
 	{% for result in results %}
 	<tr>
-		<td><a href="{{ url_for('testcase.detail', testcase_id=result.test_case_id) }}" class="text-info">{{ result.testcase_code }}</a></td>
+		<td><a href="{{ url_for('testcase.detail', testcase_id=result.test_case_id) }}" class="text-primary">{{ result.testcase_code }}</a></td>
 		<td class="{% if result.result == 'pass' %}table-success{% elif result.result == 'fail' %}table-danger{% else %}table-warning{% endif %}"
 		    >{{ result.result }}</td>
 		<td>{{ result.executor }}</td>
 		<td>{{ result.executed_at | format_datetime }}</td>
 		<td>{{ result.duration }}s</td>
 		<td>{{ result.notes }}</td>
-		<td><a href="{{ url_for('testrun.edit_case', testresult_id=result.id) }}" class="btn btn-secondary btn-sm">Edit</a></td>
+		<td>
+			<div class="d-flex gap-1">
+				<a href="{{ url_for('testrun.edit_result', testresult_id=result.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+				<a href="{{ url_for('testrun.report_bug', testresult_id=result.id) }}" class="btn btn-info btn-sm">Report</a>
+			</div>
+		</td>
 	</tr>
 	{% endfor %}
 </table>

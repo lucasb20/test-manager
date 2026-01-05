@@ -4,42 +4,42 @@
 <h2>Test Cases</h2>
 
 <div class="mb-3">
-    <a href="{{ url_for('testcase.create') }}" class="btn btn-primary">Create New Test Case</a>
-    <a href="{{ url_for('project.select', next=url_for('testcase.index')) }}" class="btn btn-secondary">Select Project</a>
-    <a href="{{ url_for('testcase.reorder') }}" class="btn btn-secondary">Reorder Test Cases</a>
-    <a href="{{ url_for('testcase.export') }}" class="btn btn-info">Export CSV</a>
+	<a href="{{ url_for('testcase.create') }}" class="btn btn-primary">Create Test Case</a>
+	<a href="{{ url_for('project.select', next=url_for('testcase.index')) }}" class="btn btn-secondary">Select Project</a>
+	<a href="{{ url_for('testcase.reorder') }}" class="btn btn-secondary">Reorder Test Cases</a>
+	<a href="{{ url_for('testcase.export') }}" class="btn btn-info">Export CSV</a>
 </div>
 
 {% if testcases %}
 <table class="table">
-    <thead class="table-dark table-striped table-bordered mt-3">
-        <tr>
-            <th>ID</th>
-            <th>Requirements</th>
-            <th>Title</th>
-            <th>Preconditions</th>
-            <th>Steps</th>
-            <th>Expected Result</th>
-            <th>Type</th>
-            <th>Automation</th>
-            <th>Last Update</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for testcase in testcases %}
-        <tr>
-            <td>{{ testcase.code_with_prefix }}</td>
-            <td>{{ testcase.requirements_codes | join(', ') }}</td>
-            <td><a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="text-info">{{ testcase.title }}</a></td>
-            <td>{{ testcase.preconditions }}</td>
-            <td>{{ testcase.steps }}</td>
-            <td>{{ testcase.expected_result }}</td>
-            <td>{{ testcase.functional }}</td>
-            <td>{{ testcase.automation }}</td>
-            <td>{{ testcase.updated_at | format_datetime }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
+	<thead class="table-dark table-striped table-bordered mt-3">
+		<tr>
+			<th>ID</th>
+			<th>Requirements</th>
+			<th>Title</th>
+			<th>Preconditions</th>
+			<th>Steps</th>
+			<th>Expected Result</th>
+			<th>Type</th>
+			<th>Automation</th>
+			<th>Last Update</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for testcase in testcases %}
+		<tr>
+			<td>{{ testcase.code_with_prefix }}</td>
+			<td>{{ testcase.requirements_codes | join(', ') }}</td>
+			<td><a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="text-primary">{{ testcase.title }}</a></td>
+			<td>{{ testcase.preconditions }}</td>
+			<td>{{ testcase.steps }}</td>
+			<td>{{ testcase.expected_result }}</td>
+			<td>{{ testcase.functional }}</td>
+			<td>{{ testcase.automation }}</td>
+			<td>{{ testcase.updated_at | format_datetime }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
 </table>
 {% else %}
 <p>No test cases found.</p>

@@ -2,6 +2,8 @@
 
 {% block content %}
 <h2>Bug Tracking</h2>
+<p><strong>ID:</strong> {{ bug.code_with_prefix }}</p>
+<p><strong>Title:</strong> {{ bug.title }}</p>
 <p><strong>Description:</strong> {{ bug.description }}</p>
 <p><strong>Status:</strong> {{ bug.status }}</p>
 <p><strong>Priority:</strong> {{ bug.priority }}</p>

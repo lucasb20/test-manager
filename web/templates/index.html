@@ -7,30 +7,4 @@
 {% else %}
 <p>Please <a href="{{ url_for('auth.login') }}">log in</a> to manage your tests.</p>
 {% endif %}
-<div class="d-flex gap-3 text-center">
-  <div class="card text-white bg-primary" style="max-width: 20rem;">
-    <div class="card-body">
-      <h4 class="card-title"><a href="{{ url_for('requirement.index') }}" class="text-light">Requirements</a></h4>
-      <p class="card-text">Requirements define what a system must do and how well it must perform, serving as the crucial foundation derived from stakeholder needs to guide development, prevent errors, and ensure the final product solves the right problem.</p>
-    </div>
-  </div>
-  <div class="card text-white bg-primary" style="max-width: 20rem;">
-    <div class="card-body">
-      <h4 class="card-title"><a href="{{ url_for('testcase.index') }}" class="text-light">Test Cases</a></h4>
-      <p class="card-text">A test case is a detailed, step-by-step set of instructions used in software testing to verify a specific feature or function of an application works as expected, including inputs, execution steps, and expected outcomes to catch errors and ensure quality.</p>
-    </div>
-  </div>
-  <div class="card text-white bg-primary" style="max-width: 20rem;">
-    <div class="card-body">
-      <h4 class="card-title"><a href="{{ url_for('testsuite.index') }}" class="text-light">Test Suites</a></h4>
-      <p class="card-text">A test suite is a collection of test cases grouped together to validate a specific feature, functionality, or module of a software application, acting like folders to organize tests for better management and execution</p>
-    </div>
-  </div>
-  <div class="card text-white bg-primary" style="max-width: 20rem;">
-    <div class="card-body">
-      <h4 class="card-title"><a href="{{ url_for('bugtracking.index') }}" class="text-light">Bug Tracking</a></h4>
-      <p class="card-text">Bug tracking is the systematic process of monitoring and managing software defects (bugs or issues) from discovery to resolution, ensuring they are prioritized, assigned, and fixed.</p>
-    </div>
-  </div>
-</div>
 {% endblock %}

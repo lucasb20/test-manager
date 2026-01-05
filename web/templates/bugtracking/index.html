@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Bug Tracking</h2>
 <div class="mb-3">
-	<a href="{{ url_for('bugtracking.create') }}" class="btn btn-primary">Report New Bug</a>
+	<a href="{{ url_for('bugtracking.create') }}" class="btn btn-primary">Report Bug</a>
 	<a href="{{ url_for('project.select', next=url_for('bugtracking.index')) }}" class="btn btn-secondary">Select Project</a>
 </div>
 <table class="table mt-3">

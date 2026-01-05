@@ -25,7 +25,7 @@
 			<td>{{ member.joined_at | format_datetime }}</td>
 			<td>
 				{% if g.user.id == member.user_id %}
-				<form action="{{ url_for('member.delete', member_id=member.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to leave this project?');">
+				<form action="{{ url_for('member.exit_project', member_id=member.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to leave this project?');">
 					<button type="submit" class="btn btn-danger btn-sm">Exit</button>
 				</form>
 				{% else %}

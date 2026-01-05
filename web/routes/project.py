@@ -40,8 +40,8 @@ def detail(project_id):
         db.select(db.func.count()).select_from(TestCase).filter_by(project_id=project.id)
     ).scalar()
     data = {
-            "total_reqs": total_reqs,
-            "total_tcs": total_tcs
+        "total_reqs": total_reqs,
+        "total_tcs": total_tcs
     }
     return render_template('project/detail.html', project=project, data=data)
 

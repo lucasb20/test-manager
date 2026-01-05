@@ -23,11 +23,17 @@ def create():
         email = request.form.get("email")
         role = request.form.get("role")
         user_id = db.session.execute(db.select(User.id).filter_by(email=email)).scalar()
-        if user_id:
+        member = db.session.execute(
+            db.select(db.exists().where(ProjectMember.user_id == user_id, ProjectMember.project_id == g.project.id))
+        ).scalar()
+        error = None
+        if member:
+            error = 'This user is already a member of the project.'
+        elif user_id:
             db.session.add(ProjectMember(project_id=g.project.id, user_id=user_id, role=role))
             db.session.commit()
             return redirect(url_for('member.index'))
-        flash("User with that email does not exist.")
+        flash(error or "User with that email does not exist.")
     return render_template("member/create.html")
 
 @bp.route("/<int:member_id>/edit", methods=["GET", "POST"])
@@ -53,3 +59,14 @@ def delete(member_id):
         db.session.delete(member)
         db.session.commit()
     return redirect(url_for('member.index'))
+
+@bp.route("/<int:member_id>/exit", methods=["POST"])
+@perm_to_view_required
+def exit_project(member_id):
+    member = db.get_or_404(ProjectMember, member_id)
+    if member.user_id != g.user.id or member.user_id == g.project.manager_id:
+        flash('Forbidden action.')
+        return redirect(url_for('member.index'))
+    db.session.delete(member)
+    db.session.commit()
+    return redirect(url_for('project.index'))
