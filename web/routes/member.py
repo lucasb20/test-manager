@@ -40,7 +40,7 @@ def create():
 @perm_to_manage_required
 def edit(member_id):
     member = db.get_or_404(ProjectMember, member_id)
-    if member.user_id == g.user.id or member.user_id == g.project.manager_id:
+    if member.user_id in (g.user.id, g.project.manager_id):
         flash('Forbidden action.')
         return redirect(url_for('member.index'))
     if request.method == "POST":

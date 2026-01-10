@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, request, render_template, redirect, url_for, g, flash, Response
 from decorators import perm_to_view_required, perm_to_edit_required
 from forms import BugForm
@@ -6,27 +7,27 @@ from utils import create_csv
 
 bp = Blueprint('testrun', __name__, url_prefix='/testrun')
 
-@bp.route('/<int:testsuite_id>', methods=['GET', 'POST'])
-@perm_to_view_required
-def index(testsuite_id):
-    tscs = db.session.execute(
-        db.select(TestSuiteCase).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.asc())
-    ).scalars().all()
-    return render_template('testrun/index.html', tscs=tscs)
-
 @bp.route('/<int:testsuite_id>/create', methods=['GET'])
 @perm_to_edit_required
 def create(testsuite_id):
-    tcs_len = db.session.execute(
-        db.select(db.func.count()).select_from(TestCase).join(TestSuiteCase).filter(TestSuiteCase.test_suite_id == testsuite_id)
-    ).scalar()
-    if tcs_len == 0:
+    tscs = db.session.execute(
+        db.select(TestSuiteCase).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.asc())
+    ).scalars().all()
+    if len(tscs) == 0:
         flash('No test cases in the test suite. Please add test cases before creating a test run.')
         return redirect(url_for('testsuite.detail', testsuite_id=testsuite_id))
     testrun = TestRun(test_suite_id=testsuite_id, status='progress')
     db.session.add(testrun)
+    db.session.flush()
+    for tsc in tscs:
+        testresult = TestResult(
+            test_run_id=testrun.id,
+            test_case_id=tsc.test_case_id,
+            executed_by=g.user.id,
+        )
+        db.session.add(testresult)
     db.session.commit()
-    return redirect(url_for('testrun.run_case', testrun_id=testrun.id, index=0))
+    return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
 
 @bp.route('/<int:testsuite_id>/previous', methods=['GET'])
 @perm_to_view_required
@@ -48,33 +49,29 @@ def delete(testrun_id):
     db.session.commit()
     return redirect(url_for('testrun.previous', testsuite_id=testsuite_id))
 
-@bp.route('/<int:testrun_id>/<int:index>', methods=['GET', 'POST'])
+@bp.route('/<int:testrun_id>/run_case', methods=['GET', 'POST'])
 @perm_to_edit_required
-def run_case(testrun_id, index):
+def run_case(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
     if testrun.status == 'finished':
         return redirect(url_for('testrun.summary', testrun_id=testrun.id))
-    testcases = db.session.execute(
-        db.select(TestCase).join(TestSuiteCase).filter(TestSuiteCase.test_suite_id == testrun.test_suite_id).order_by(TestSuiteCase.order.asc())
-    ).scalars().all()
-    if index >= len(testcases):
+    testresult = db.session.execute(
+        db.select(TestResult).filter_by(test_run_id=testrun.id, executed_at=None)
+    ).scalars().first()
+    if not testresult:
         testrun.status = 'finished'
         db.session.commit()
         return redirect(url_for('testrun.summary', testrun_id=testrun.id))
-    testcase = testcases[index]
     if request.method == 'POST':
-        testresult = TestResult(
-            test_run_id=testrun.id,
-            test_case_id=testcase.id,
-            executed_by=g.user.id,
-            result=request.form['status'],
-            notes=request.form['notes'],
-            duration=int(request.form['duration'])
-        )
-        db.session.add(testresult)
+        testresult.executed_at = datetime.now()
+        testresult.executed_by = g.user.id
+        testresult.result = request.form['status']
+        testresult.notes = request.form['notes']
+        testresult.duration = int(request.form['duration'])
         db.session.commit()
-        return redirect(url_for('testrun.run_case', testrun_id=testrun.id, index=index + 1))
-    return render_template('testrun/run_case.html', testrun=testrun, testcase=testcase, index=index, total=len(testcases))
+        return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
+    testcase = db.session.get(TestCase, testresult.test_case_id)
+    return render_template('testrun/run_case.html', testrun=testrun, testcase=testcase, testresult=testresult)
 
 @bp.route('/<int:testresult_id>/edit', methods=['GET', 'POST'])
 @perm_to_edit_required
@@ -123,18 +120,9 @@ def report_bug(testresult_id):
         db.session.flush()
         db.session.add(BugTestCase(bug_id=bug.id, test_case_id=testresult.test_case_id))
         db.session.commit()
-        return redirect(url_for('testrun.summary', testrun_id=testresult.test_run_id))
+        return redirect(url_for('testrun.run_case', testrun_id=testresult.test_run_id))
     form.description.data = testresult.notes
     return render_template('bugtracking/create.html', form=form)
-
-@bp.route('/change_order/<int:testsuitecase_id1>/<int:testsuitecase_id2>', methods=['POST'])
-@perm_to_edit_required
-def change_order(testsuitecase_id1, testsuitecase_id2):
-    tsc1 = db.get_or_404(TestSuiteCase, testsuitecase_id1)
-    tsc2 = db.get_or_404(TestSuiteCase, testsuitecase_id2)
-    tsc1.order, tsc2.order = tsc2.order, tsc1.order
-    db.session.commit()
-    return redirect(url_for('testrun.index', testsuite_id=tsc1.test_suite_id))
 
 @bp.route('/<int:testrun_id>/export', methods=['GET'])
 @perm_to_view_required

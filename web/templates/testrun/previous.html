@@ -2,40 +2,38 @@
 
 {% block content %}
 <h2>Previous Test Runs - {{ ts_name }}</h2>
-
 <div class="mb-3">
-    <a href="{{ url_for('testrun.index', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-secondary">Back to Test Run</a>
+	<a href="{{ url_for('testsuite.detail', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-secondary">Back to Test Suite</a>
 </div>
-
 <table class="table">
-    <thead class="table-dark table-striped table-bordered mt-3">
-        <tr>
-            <th>Executed Cases</th>
-            <th>Status</th>
-            <th>Created At</th>
-            <th>Duration</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for testrun in testruns %}
-            <tr>
-                <td>{{ testrun.next_case }}</td>
-                <td>{{ testrun.status }}</td>
-                <td>{{ testrun.created_at | format_datetime }}</td>
-                <td>{{ testrun.duration }}s</td>
-                <td>
-                    {% if testrun.status == 'finished' %}
-                        <a href="{{ url_for('testrun.summary', testrun_id=testrun.id) }}">View Summary</a>
-                    {% else %}
-                        <a href="{{ url_for('testrun.run_case', testrun_id=testrun.id, index=testrun.next_case) }}">Continue</a>
-                    {% endif %}
-                    <form method="post" action="{{ url_for('testrun.delete', testrun_id=testrun.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this test run?');">
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        {% endfor %}
-    </tbody>
+	<thead class="table-dark table-striped table-bordered mt-3">
+		<tr>
+			<th>Executed Cases</th>
+			<th>Status</th>
+			<th>Created At</th>
+			<th>Duration</th>
+			<th>Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for testrun in testruns %}
+		<tr>
+			<td>{{ testrun.total_executed }} / {{ testrun.total_results }}</td>
+			<td>{{ testrun.status }}</td>
+			<td>{{ testrun.created_at | format_datetime }}</td>
+			<td>{{ testrun.duration }}s</td>
+			<td>
+				{% if testrun.status == 'finished' %}
+				<a href="{{ url_for('testrun.summary', testrun_id=testrun.id) }}">View Summary</a>
+				{% else %}
+				<a href="{{ url_for('testrun.run_case', testrun_id=testrun.id) }}">Continue</a>
+				{% endif %}
+				<form method="post" action="{{ url_for('testrun.delete', testrun_id=testrun.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this test run?');">
+					<button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+				</form>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
 </table>
 {% endblock %}

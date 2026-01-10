@@ -10,7 +10,7 @@ bp = Blueprint('bugtracking', __name__, url_prefix='/bugtracking')
 @perm_to_view_required
 def index():
     bugs = db.session.execute(
-        db.select(Bug).order_by(Bug.created_at.desc())
+        db.select(Bug).filter_by(project_id=g.project.id).order_by(Bug.created_at.desc())
     ).scalars().all()
     priority = {"High": 0, "Medium": 1, "Low": 2}
     status = {"Open": 0, "Progress": 0, "Closed": 2}

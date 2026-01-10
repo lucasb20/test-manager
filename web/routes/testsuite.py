@@ -17,10 +17,10 @@ def index():
 @perm_to_view_required
 def detail(testsuite_id):
     testsuite = db.get_or_404(TestSuite, testsuite_id)
-    testcases = db.session.execute(
-        db.select(TestCase).join(TestSuiteCase).filter(TestSuiteCase.test_suite_id == testsuite_id)
+    tscs = db.session.execute(
+        db.select(TestSuiteCase).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.asc())
     ).scalars().all()
-    return render_template('testsuite/detail.html', testsuite=testsuite, testcases=testcases)
+    return render_template('testsuite/detail.html', testsuite=testsuite, tscs=tscs)
 
 @bp.route('/create', methods=['GET', 'POST'])
 @perm_to_edit_required
@@ -78,3 +78,12 @@ def associate(testsuite_id):
         db.session.commit()
         return redirect(url_for('testsuite.detail', testsuite_id=testsuite_id))
     return render_template('testsuite/associate.html', testcases=testcases, associated_ids=associated_ids)
+
+@bp.route('/<int:testsuitecase_id1>/<int:testsuitecase_id2>/change_order', methods=['POST'])
+@perm_to_edit_required
+def change_order(testsuitecase_id1, testsuitecase_id2):
+    tsc1 = db.get_or_404(TestSuiteCase, testsuitecase_id1)
+    tsc2 = db.get_or_404(TestSuiteCase, testsuitecase_id2)
+    tsc1.order, tsc2.order = tsc2.order, tsc1.order
+    db.session.commit()
+    return redirect(url_for('testsuite.detail', testsuite_id=tsc1.test_suite_id))

@@ -4,8 +4,8 @@
 <h2>Test Suites</h2>
 
 <div class="mb-3">
-    <a href="{{ url_for('project.select', next=url_for('testsuite.index')) }}" class="btn btn-secondary">Select Project</a>
     <a href="{{ url_for('testsuite.create') }}" class="btn btn-primary">Create Test Suite</a>
+    <a href="{{ url_for('project.select', next=url_for('testsuite.index')) }}" class="btn btn-secondary">Select Project</a>
 </div>
 
 <div class="list-group mb-3 mt-3">

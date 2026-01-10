@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Test Run Summary</h2>
 <div class="mb-3">
-	<a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Back to Previous Test Run</a>
+	<a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Back to Previous Runs</a>
 	<a href="{{ url_for('testrun.export', testrun_id=testrun.id) }}" class="btn btn-info">Export CSV</a>
 </div>
 <p><strong>Total Tests:</strong> {{ data.total_tests }}</p>
@@ -22,6 +22,7 @@
 			<th>Duration</th>
 			<th>Notes</th>
 			<th>Actions</th>
+			<th>Open Bugs</th>
 		</tr>
 	</thead>
 	{% for result in results %}
@@ -36,8 +37,13 @@
 		<td>
 			<div class="d-flex gap-1">
 				<a href="{{ url_for('testrun.edit_result', testresult_id=result.id) }}" class="btn btn-secondary btn-sm">Edit</a>
-				<a href="{{ url_for('testrun.report_bug', testresult_id=result.id) }}" class="btn btn-info btn-sm">Report</a>
+				<a href="{{ url_for('testrun.report_bug', testresult_id=result.id) }}" class="btn btn-info btn-sm">Report Bug</a>
 			</div>
+		</td>
+		<td>
+			{% for bug in result.open_bugs %}
+			<a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}" title="{{ bug.title }}">{{ bug.code_with_prefix }}</a>
+			{% endfor %}
 		</td>
 	</tr>
 	{% endfor %}

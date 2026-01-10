@@ -2,7 +2,7 @@ from datetime import date
 from flask import Blueprint, render_template, request, g, redirect, url_for, session, send_file, flash
 from sqlalchemy.exc import IntegrityError
 from decorators import login_required, perm_to_view_required, perm_to_manage_required
-from db import db, Project, ProjectMember, Requirement, RequirementTestCase, TestCase
+from db import db, Project, ProjectMember, Requirement, RequirementTestCase, TestCase, Bug, BugTestCase
 from utils import create_json, import_json
 from forms import ProjectForm
 
@@ -96,6 +96,9 @@ def export(project_id):
     testcases = db.session.execute(
         db.select(TestCase).filter_by(project_id=project_id).order_by(TestCase.order.asc())
     ).scalars().all()
+    bugs = db.session.execute(
+        db.select(Bug).filter_by(project_id=project_id).order_by(Bug.order.asc())
+    ).scalars().all()
     project_data = {
         'name': project.name,
         'description': project.description,
@@ -116,6 +119,15 @@ def export(project_id):
                 'is_functional': tc.is_functional,
                 'is_automated': tc.is_automated,
             } for tc in testcases
+        },
+        'bugs': {
+            bug.code_with_prefix:{
+                'title': bug.title,
+                'description': bug.description,
+                'testcases': ', '.join(bug.testcases_codes),
+                'status': bug.status,
+                'priority': bug.priority,
+            } for bug in bugs
         }
     }
     buffer = create_json(project_data)
@@ -160,8 +172,9 @@ def import_project():
                     reqs[code] = req
                     order += 1
                 db.session.flush()
+                tcs = {}
                 order = 1
-                for tc_data in data.get('testcases', {}).values():
+                for code, tc_data in data.get('testcases', {}).items():
                     tc = TestCase(
                         project_id=project.id,
                         title=tc_data.get('title'),
@@ -173,6 +186,7 @@ def import_project():
                         order=order
                     )
                     db.session.add(tc)
+                    tcs[code] = tc
                     db.session.flush()
                     for req_code in tc_data.get('requirements', '').split(', '):
                         if req_code in reqs:
@@ -181,6 +195,26 @@ def import_project():
                                 test_case_id=tc.id
                             )
                             db.session.add(rtc)
+                    order += 1
+                order = 1
+                for bug_data in data.get('bugs', {}).values():
+                    bug = Bug(
+                        project_id=project.id,
+                        title=bug_data.get('title'),
+                        description=bug_data.get('description'),
+                        status=bug_data.get('status'),
+                        priority=bug_data.get('priority'),
+                        order=order,
+                    )
+                    db.session.add(bug)
+                    db.session.flush()
+                    for tc_code in bug_data.get('testcases', '').split(', '):
+                        if tc_code in tcs:
+                            btc = BugTestCase(
+                                bug_id=bug.id,
+                                test_case_id=tcs[tc_code].id
+                            )
+                            db.session.add(btc)
                     order += 1
                 db.session.commit()
                 return redirect(url_for('project.detail', project_id=project.id))

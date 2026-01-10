@@ -2,13 +2,21 @@
 
 {% block content %}
 <h2>Test Run</h2>
-<p>Running testcase {{ index + 1 }} of {{ total }}</p>
+<p>Running testcase {{ testrun.total_executed + 1 }} of {{ testrun.total_results }}</p>
 <p><strong>ID</strong>: {{ testcase.code_with_prefix }}</p>
+<p>
+	<strong>Open Bugs</strong>:
+	{% for bug in testresult.open_bugs %}
+	<a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}" title="{{ bug.title }}">{{ bug.code_with_prefix }}</a>
+	{% else %}
+	None.
+	{% endfor %}
+</p>
 <p><strong>Title</strong>: {{ testcase.title }}</p>
 <p><strong>Preconditions</strong>: {{ testcase.preconditions }}</p>
 <p><strong>Steps</strong>: {{ testcase.steps | replace('\n','<br/>') | safe }}</p>
 <p><strong>Expected Results</strong>: {{ testcase.expected_result }}</p>
-<form method="post" action="{{ url_for('testrun.run_case', testrun_id=testrun.id, index=index) }}">
+<form method="post">
     <div class="mb-3">
         <select name="status" class="form-select" required>
             <option value="" disabled selected>Select status</option>
@@ -23,6 +31,7 @@
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
     <a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Pause</a>
+    <a href="{{ url_for('testrun.report_bug', testresult_id=testresult.id) }}" class="btn btn-info">Report Bug</a>
 </form>
 
 <script>

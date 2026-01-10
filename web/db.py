@@ -161,13 +161,18 @@ class TestRun(db.Model):
 
     @property
     def duration(self):
-        durations = db.session.execute(
-            db.select(TestResult.duration).filter_by(test_run_id=self.id)
-        ).scalars().all()
-        return sum(duration for duration in durations)
+        return db.session.execute(
+            db.select(db.func.sum(TestResult.duration)).filter(TestResult.test_run_id == self.id, TestResult.executed_at != None)
+        ).scalar()
 
     @property
-    def next_case(self):
+    def total_executed(self):
+        return db.session.execute(
+            db.select(db.func.count()).select_from(TestResult).filter(TestResult.test_run_id == self.id, TestResult.executed_at != None)
+        ).scalar()
+
+    @property
+    def total_results(self):
         return db.session.execute(
             db.select(db.func.count()).select_from(TestResult).filter_by(test_run_id=self.id)
         ).scalar()
@@ -178,7 +183,7 @@ class TestResult(db.Model):
     test_case_id = db.Column(db.ForeignKey('test_case.id'))
     executed_by = db.Column(db.ForeignKey('user.id'))
     result = db.Column(db.String(50))
-    executed_at = db.Column(db.DateTime, default=datetime.now)
+    executed_at = db.Column(db.DateTime)
     notes = db.Column(db.String(200))
     duration = db.Column(db.Integer)
 
@@ -188,6 +193,12 @@ class TestResult(db.Model):
             db.select(TestCase.order).filter_by(id=self.test_case_id)
         ).scalar()
         return code_with_prefix("TC", order) if order else "Unknown"
+
+    @property
+    def open_bugs(self):
+        return db.session.execute(
+            db.select(Bug).join(BugTestCase).filter(BugTestCase.test_case_id == self.test_case_id, Bug.status != 'Closed')
+        ).scalars().all()
 
     @property
     def executor(self):
