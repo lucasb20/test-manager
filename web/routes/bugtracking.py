@@ -26,7 +26,7 @@ def create():
         bug.order = bug.last_order + 1
         db.session.add(bug)
         db.session.commit()
-        return redirect(url_for('bugtracking.detail,', bug_id=bug.id))
+        return redirect(url_for('bugtracking.detail', bug_id=bug.id))
     return render_template('bugtracking/create.html', form=form)
 
 @bp.route('/<int:bug_id>')
