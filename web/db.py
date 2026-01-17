@@ -61,7 +61,7 @@ class Requirement(db.Model):
     priority = db.Column(db.String(50), nullable=False)
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     testcase_associations = db.relationship('RequirementTestCase', backref='requirement', lazy=True, cascade="all, delete-orphan")
 
     @property
@@ -86,7 +86,7 @@ class TestCase(db.Model):
     project_id = db.Column(db.ForeignKey('project.id'))
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     requirement_associations = db.relationship('RequirementTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
     bug_associations = db.relationship('BugTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
     testsuite_associations = db.relationship('TestSuiteCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
@@ -217,7 +217,7 @@ class Bug(db.Model):
     priority = db.Column(db.String(50), nullable=False)
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     testcase_associations = db.relationship('BugTestCase', backref='bug', lazy=True, cascade="all, delete-orphan")
 
     @property

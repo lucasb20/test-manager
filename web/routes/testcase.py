@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 import re
 from flask import Blueprint, render_template, request, redirect, url_for, g, Response
 from decorators import perm_to_view_required, perm_to_edit_required
@@ -77,7 +77,6 @@ def edit(testcase_id):
         testcase.expected_result = form.expected_result.data
         testcase.is_functional = form.is_functional.data
         testcase.is_automated = form.is_automated.data
-        testcase.updated_at = datetime.now()
         db.session.flush()
         reqs_ids = request.form.getlist('requirements_ids')
         for req in requirements:
