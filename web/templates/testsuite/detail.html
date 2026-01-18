@@ -13,7 +13,6 @@
 	<div class="mb-3">
 		<a href="{{ url_for('testrun.create', testsuite_id=testsuite.id) }}" class="btn btn-primary">Start Test Run</a>
 		<a href="{{ url_for('testrun.previous', testsuite_id=testsuite.id) }}" class="btn btn-info">View Previous Runs</a>
-		<a href="{{ url_for('testsuite.associate', testsuite_id=testsuite.id) }}" class="btn btn-info">Associate Test Cases</a>
 	</div>
 	<div class="mb-3">
 		<a href="{{ url_for('testsuite.edit', testsuite_id=testsuite.id) }}" class="btn btn-secondary">Edit</a>
