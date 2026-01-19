@@ -8,10 +8,6 @@
         {{ render_field(form.title, class="form-control", list="title_suggestions", autocomplete="off", autofocus=True) }}
     </div>
     <div class="mb-3">
-        <label for="project" class="form-label">Project</label>
-        <input type="text" class="form-control" value="{{ g.project.name }}" disabled>
-    </div>
-    <div class="mb-3">
         {{ render_field(form.preconditions, class="form-control", list="precondition_suggestions", autocomplete="off") }}
     </div>
     <div class="mb-3">
@@ -21,13 +17,19 @@
         {{ render_field(form.expected_result, class="form-control", list="expected_result_suggestions", autocomplete="off") }}
     </div>
     <div class="mb-3">
-        {{ render_field(form.is_functional, class="form-select") }}
-    </div>
-    <div class="mb-3">
         {{ render_field(form.is_automated, class="form-check-input") }}
     </div>
     <button type="submit" class="btn btn-primary">Create Test Case</button>
     <a href="{{ url_for('testcase.index') }}" class="btn btn-secondary">Back to List</a>
+	{% if requirements %}
+	<h2 class="mt-3">Associated Requirements</h2>
+	{% for req in requirements %}
+	<div class="form mb-3">
+		<input type="checkbox" id="requirement_{{ req.id }}" name="requirements_ids" value="{{ req.id }}">
+		<label for="requirement_{{ req.id }}" class="form-label">{{req.code_with_prefix}} {{ req.title }}</label>
+	</div>
+	{% endfor %}
+	{% endif %}
 </form>
 
 <datalist id="title_suggestions">

@@ -28,8 +28,8 @@
 	{% for result in results %}
 	<tr>
 		<td><a href="{{ url_for('testcase.detail', testcase_id=result.test_case_id) }}" class="text-primary">{{ result.testcase_code }}</a></td>
-		<td class="{% if result.result == 'pass' %}table-success{% elif result.result == 'fail' %}table-danger{% else %}table-warning{% endif %}"
-		    >{{ result.result }}</td>
+		<td class="{% if result.status == 'pass' %}table-success{% elif result.status == 'fail' %}table-danger{% else %}table-warning{% endif %}"
+		    >{{ result.status }}</td>
 		<td>{{ result.executor }}</td>
 		<td>{{ result.executed_at | format_datetime }}</td>
 		<td>{{ result.duration }}s</td>

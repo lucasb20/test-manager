@@ -16,7 +16,7 @@ def create(testsuite_id):
     if len(tscs) == 0:
         flash('No test cases in the test suite. Please add test cases before creating a test run.')
         return redirect(url_for('testsuite.detail', testsuite_id=testsuite_id))
-    testrun = TestRun(test_suite_id=testsuite_id, status='progress')
+    testrun = TestRun(test_suite_id=testsuite_id)
     db.session.add(testrun)
     db.session.flush()
     for tsc in tscs:
@@ -32,12 +32,8 @@ def create(testsuite_id):
 @bp.route('/<int:testsuite_id>/previous', methods=['GET'])
 @perm_to_view_required
 def previous(testsuite_id):
-    testruns = db.session.execute(
-        db.select(TestRun).filter_by(test_suite_id=testsuite_id).order_by(TestRun.created_at.desc())
-    ).scalars().all()
-    ts_name = db.session.execute(
-        db.select(TestSuite.name).filter_by(id=testsuite_id)
-    ).scalar()
+    testruns = db.session.execute(db.select(TestRun).filter_by(test_suite_id=testsuite_id).order_by(TestRun.created_at.desc())).scalars().all()
+    ts_name = db.session.execute(db.select(TestSuite.name).filter_by(id=testsuite_id)).scalar()
     return render_template('testrun/previous.html', testruns=testruns, ts_name=ts_name)
 
 @bp.route('/<int:testrun_id>/delete', methods=['POST'])
@@ -53,19 +49,13 @@ def delete(testrun_id):
 @perm_to_edit_required
 def run_case(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
-    if testrun.status == 'finished':
+    if testrun.is_finished:
         return redirect(url_for('testrun.summary', testrun_id=testrun.id))
-    testresult = db.session.execute(
-        db.select(TestResult).filter_by(test_run_id=testrun.id, executed_at=None)
-    ).scalars().first()
-    if not testresult:
-        testrun.status = 'finished'
-        db.session.commit()
-        return redirect(url_for('testrun.summary', testrun_id=testrun.id))
+    testresult = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id, executed_at=None)).scalars().first()
     if request.method == 'POST':
         testresult.executed_at = datetime.now()
         testresult.executed_by = g.user.id
-        testresult.result = request.form['status']
+        testresult.status = request.form['status']
         testresult.notes = request.form['notes']
         testresult.duration = int(request.form['duration'])
         db.session.commit()
@@ -78,7 +68,7 @@ def run_case(testrun_id):
 def edit_result(testresult_id):
     testresult = db.get_or_404(TestResult, testresult_id)
     if request.method == 'POST':
-        testresult.result = request.form['status']
+        testresult.status = request.form['status']
         testresult.notes = request.form['notes']
         db.session.commit()
         return redirect(url_for('testrun.summary', testrun_id=testresult.test_run_id))
@@ -89,13 +79,11 @@ def edit_result(testresult_id):
 @perm_to_view_required
 def summary(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
-    results = db.session.execute(
-        db.select(TestResult).filter_by(test_run_id=testrun.id)
-    ).scalars().all()
+    results = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id)).scalars().all()
     total_tests = len(results)
-    passed_tests = sum(1 for r in results if r.result == 'pass')
-    skipped_tests = sum(1 for r in results if r.result == 'skip')
-    failed_tests = total_tests - passed_tests - skipped_tests
+    passed_tests = sum(1 for r in results if r.status == 'pass')
+    failed_tests = sum(1 for r in results if r.status == 'fail')
+    skipped_tests = total_tests - passed_tests - failed_tests
     percent_passed = round((passed_tests / total_tests * 100), 2) if total_tests > 0 else 0
     data = {
         'total_tests': total_tests,
@@ -114,7 +102,14 @@ def report_bug(testresult_id):
     form = BugForm(request.form)
     testresult = db.get_or_404(TestResult, testresult_id)
     if request.method == 'POST' and form.validate():
-        bug = Bug(title=form.title.data, description=form.description.data, status=form.status.data, priority=form.priority.data, reported_by=g.user.id, project_id=g.project.id)
+        bug = Bug(
+            title=form.title.data,
+            description=form.description.data,
+            status=form.status.data,
+            priority=form.priority.data,
+            reported_by=g.user.id,
+            project_id=g.project.id
+        )
         bug.order = bug.last_order + 1
         db.session.add(bug)
         db.session.flush()
@@ -135,7 +130,7 @@ def export(testrun_id):
     for result in results:
         data.append((
             result.testcase_code,
-            result.result,
+            result.status,
             result.executor,
             result.executed_at.strftime("%Y-%m-%d %H:%M"),
             result.duration,

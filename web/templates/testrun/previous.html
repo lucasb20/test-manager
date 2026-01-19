@@ -9,7 +9,6 @@
 	<thead class="table-dark table-striped table-bordered mt-3">
 		<tr>
 			<th>Executed Cases</th>
-			<th>Status</th>
 			<th>Created At</th>
 			<th>Duration</th>
 			<th>Actions</th>
@@ -19,11 +18,10 @@
 		{% for testrun in testruns %}
 		<tr>
 			<td>{{ testrun.total_executed }} / {{ testrun.total_results }}</td>
-			<td>{{ testrun.status }}</td>
 			<td>{{ testrun.created_at | format_datetime }}</td>
 			<td>{{ testrun.duration }}s</td>
 			<td>
-				{% if testrun.status == 'finished' %}
+				{% if testrun.is_finished %}
 				<a href="{{ url_for('testrun.summary', testrun_id=testrun.id) }}">View Summary</a>
 				{% else %}
 				<a href="{{ url_for('testrun.run_case', testrun_id=testrun.id) }}">Continue</a>

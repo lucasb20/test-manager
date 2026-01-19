@@ -13,11 +13,11 @@
 <table class="table mt-3">
     <thead class="table-dark table-striped table-bordered mt-3">
         <tr>
-            <th>Id</th>
+            <th>ID</th>
             <th>Title</th>
+            <th>Type</th>
             <th>Priority</th>
-            <th>Created At</th>
-            <th>Updated At</th>
+            <th>Last Update</th>
         </tr>
     </thead>
     <tbody>
@@ -25,8 +25,8 @@
         <tr>
             <td>{{ requirement.code_with_prefix }}</td>
             <td><a href="{{ url_for('requirement.detail', requirement_id=requirement.id) }}" class="text-primary">{{ requirement.title }}</a></td>
-            <td>{{ requirement.priority }}</td>
-            <td>{{ requirement.created_at | format_datetime }}</td>
+            <td>{{ requirement.type | capitalize }}</td>
+            <td>{{ requirement.priority | capitalize }}</td>
             <td>{{ requirement.updated_at | format_datetime }}</td>
         </tr>
         {% endfor %}

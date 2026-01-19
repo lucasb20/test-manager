@@ -8,7 +8,6 @@
 <p><strong>Preconditions:</strong> {{ testcase.preconditions }}</p>
 <p><strong>Steps:</strong> {{ testcase.steps | replace('\n','<br/>') | safe }}</p>
 <p><strong>Expected Result:</strong> {{ testcase.expected_result }}</p>
-<p><strong>Type:</strong> {{ testcase.functional }}</p>
 <p><strong>Automation:</strong> {{ testcase.automation }}</p>
 <p><strong>Created At:</strong> {{ testcase.created_at | format_datetime }}</p>
 <p><strong>Updated At:</strong> {{ testcase.updated_at | format_datetime }}</p>
@@ -16,7 +15,6 @@
 <form action="{{ url_for('testcase.delete', testcase_id=testcase.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this test case?');">
     <a href="{{ url_for('testcase.edit', testcase_id=testcase.id) }}" class="btn btn-secondary">Edit</a>
     <button type="submit" class="btn btn-danger">Delete</button>
-    <a href="{{ url_for('testcase.associate', testcase_id=testcase.id) }}" class="btn btn-primary">Associate Requirements</a>
     <a href="{{ url_for('testcase.index') }}" class="btn btn-secondary">Back to List</a>
 </form>
 

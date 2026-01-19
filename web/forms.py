@@ -30,14 +30,14 @@ class ProjectForm(Form):
 class RequirementForm(Form):
     title = StringField('Title', [validators.InputRequired(), validators.Length(min=1, max=200)])
     description = TextAreaField('Description', [validators.Optional(), validators.Length(max=500)])
-    priority = SelectField('Priority', choices=[('High', 'High'), ('Medium', 'Medium'), ('Low', 'Low')], validators=[validators.InputRequired()])
+    type = SelectField('Type', choices=[('functional', 'Functional'), ('quality', 'Quality'), ('constraint', 'Constraint')], validators=[validators.InputRequired()])
+    priority = SelectField('Priority', choices=[('high', 'High'), ('medium', 'Medium'), ('low', 'Low')], validators=[validators.InputRequired()])
 
 class TestCaseForm(Form):
     title = StringField('Title', [validators.InputRequired(), validators.Length(max=200)])
     preconditions = StringField('Preconditions', [validators.Length(max=200)])
     steps = TextAreaField('Steps', [validators.Length(max=500)])
     expected_result = StringField('Expected Result', [validators.InputRequired(), validators.Length(max=200)])
-    is_functional = SelectField('Functional', choices=[('1', 'Yes'), ('0', 'No')], coerce=int)
     is_automated = BooleanField('Automated')
 
 class TestSuiteForm(Form):
@@ -47,5 +47,5 @@ class TestSuiteForm(Form):
 class BugForm(Form):
     title = StringField('Title', [validators.InputRequired(), validators.Length(max=80)])
     description = TextAreaField('Description', [validators.Optional(), validators.Length(max=200)])
-    priority = SelectField('Priority', choices=[('High', 'High'), ('Medium', 'Medium'), ('Low', 'Low')], validators=[validators.InputRequired()])
-    status = SelectField('Status', choices=[('Open', 'Open'), ('Progress', 'Progress'), ('Closed', 'Closed')], validators=[validators.InputRequired()])
+    priority = SelectField('Priority', choices=[('high', 'High'), ('medium', 'Medium'), ('low', 'Low')], validators=[validators.InputRequired()])
+    status = SelectField('Status', choices=[('open', 'Open'), ('progress', 'Progress'), ('closed', 'Closed')], validators=[validators.InputRequired()])

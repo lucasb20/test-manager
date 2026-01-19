@@ -5,15 +5,14 @@
 <p><strong>ID:</strong> {{ bug.code_with_prefix }}</p>
 <p><strong>Title:</strong> {{ bug.title }}</p>
 <p><strong>Description:</strong> {{ bug.description }}</p>
-<p><strong>Status:</strong> {{ bug.status }}</p>
-<p><strong>Priority:</strong> {{ bug.priority }}</p>
+<p><strong>Status:</strong> {{ bug.status | capitalize }}</p>
+<p><strong>Priority:</strong> {{ bug.priority | capitalize }}</p>
 <p><strong>Reporter:</strong> {{ bug.reporter }}</p>
 <p><strong>Created At:</strong> {{ bug.created_at | format_datetime }}</p>
 <p><strong>Updated At:</strong> {{ bug.updated_at | format_datetime }}</p>
 <form method="post" action="{{ url_for('bugtracking.delete', bug_id=bug.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this bug?');">
     <a href="{{ url_for('bugtracking.edit', bug_id=bug.id) }}" class="btn btn-secondary">Edit</a>
     <button type="submit" class="btn btn-danger">Delete</button>
-    <a href="{{ url_for('bugtracking.associate', bug_id=bug.id) }}" class="btn btn-primary">Associate Test Cases</a>
     <a href="{{ url_for('bugtracking.index') }}" class="btn btn-secondary">Back to List</a>
 </form>
 {% if testcases %}

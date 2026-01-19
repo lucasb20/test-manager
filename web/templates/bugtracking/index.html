@@ -24,8 +24,8 @@
 			<td>{{ bug.code_with_prefix }}</td>
 			<td>{{ bug.testcases_codes | join(', ') }}</td>
 			<td><a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}">{{ bug.title }}</a></td>
-			<td class="{% if bug.status == 'Closed' %}table-success{% elif bug.status == 'Progress' %}table-warning{% endif %}">{{ bug.status }}</td>
-			<td>{{ bug.priority }}</td>
+			<td class="{% if bug.status == 'closed' %}table-success{% elif bug.status == 'progress' %}table-warning{% endif %}">{{ bug.status | capitalize }}</td>
+			<td>{{ bug.priority | capitalize }}</td>
 			<td>{{ bug.reporter }}</td>
 			<td>{{ bug.updated_at | format_datetime }}</td>
 		</tr>

@@ -4,25 +4,34 @@
 {% block content %}
 <h2>Requirements</h2>
 <form method="post">
-    <div class="mb-3">
-        {{ render_field(form.title, class="form-control", list="title_suggestions", autocomplete="off", autofocus=True) }}
-    </div>
-    <div class="mb-3">
-        <label for="project" class="form-label">Project</label>
-        <input type="text" class="form-control" value="{{ g.project.name }}" disabled>
-    </div>
-    <div class="mb-3">
-        {{ render_field(form.description, class="form-control") }}
-    </div>
-    <div class="mb-3">
-        {{ render_field(form.priority, class="form-select") }}
-    </div>
-    <button type="submit" class="btn btn-primary">Create Requirement</button>
+	<div class="mb-3">
+		{{ render_field(form.title, class="form-control", list="title_suggestions", autocomplete="off", autofocus=True) }}
+	</div>
+	<div class="mb-3">
+		{{ render_field(form.description, class="form-control") }}
+	</div>
+	<div class="mb-3">
+		{{ render_field(form.type, class="form-select") }}
+	</div>
+	<div class="mb-3">
+		{{ render_field(form.priority, class="form-select") }}
+	</div>
+	<button type="submit" class="btn btn-primary">Create Requirement</button>
+    <a href="{{ url_for('requirement.index') }}" class="btn btn-secondary">Back to List</a>
+	{% if testcases %}
+	<h2 class="mt-3">Associated Test Cases</h2>
+	{% for tc in testcases %}
+	<div class="form mb-3">
+		<input type="checkbox" id="testcase_{{ tc.id }}" name="testcases_ids" value="{{ tc.id }}">
+		<label for="testcase_{{ tc.id }}" class="form-label">{{ tc.code_with_prefix }} {{ tc.title }}</label>
+	</div>
+	{% endfor %}
+	{% endif %}
 </form>
 
 <datalist id="title_suggestions">
-    {% for title in titles %}
-    <option value="{{ title }}">
-    {% endfor %}
+	{% for title in titles %}
+	<option value="{{ title }}">
+	{% endfor %}
 </datalist>
 {% endblock %}
