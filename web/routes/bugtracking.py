@@ -9,10 +9,20 @@ bp = Blueprint('bugtracking', __name__, url_prefix='/bugtracking')
 @perm_to_view_required
 def index():
     bugs = db.session.execute(db.select(Bug).filter_by(project_id=g.project.id).order_by(Bug.created_at.desc())).scalars().all()
-    priority = {"high": 0, "medium": 1, "low": 2}
-    status = {"open": 0, "progress": 0, "closed": 2}
+    priority = {'high': 0, 'medium': 1, 'low': 2}
+    status = {'open': 0, 'progress': 0, 'closed': 1}
     bugs.sort(key=lambda b: ((status.get(b.status, 3)), priority.get(b.priority, 3)))
-    return render_template('bugtracking/index.html', bugs=bugs)
+    open_bugs = [bug for bug in bugs if bug.status != 'closed']
+    high_open_bugs = sum(1 for bug in open_bugs if bug.priority == 'high')
+    medium_open_bugs = sum(1 for bug in open_bugs if bug.priority == 'medium')
+    low_open_bugs = len(open_bugs) - high_open_bugs - medium_open_bugs
+    data = {
+        'open_bugs': len(open_bugs),
+        'high_open_bugs': high_open_bugs,
+        'medium_open_bugs': medium_open_bugs,
+        'low_open_bugs': low_open_bugs
+    }
+    return render_template('bugtracking/index.html', bugs=bugs, data=data)
 
 @bp.route('/create', methods=['GET', 'POST'])
 @perm_to_edit_required

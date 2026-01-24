@@ -42,8 +42,7 @@ def create():
             preconditions=form.preconditions.data,
             steps=normalize_steps(form.steps.data),
             expected_result=form.expected_result.data,
-            project_id=g.project.id,
-            is_automated=form.is_automated.data
+            project_id=g.project.id
         )
         testcase.order = testcase.last_order + 1
         db.session.add(testcase)
@@ -74,7 +73,6 @@ def edit(testcase_id):
         testcase.preconditions = form.preconditions.data
         testcase.steps = normalize_steps(form.steps.data)
         testcase.expected_result = form.expected_result.data
-        testcase.is_automated = form.is_automated.data
         db.session.flush()
         reqs_ids = request.form.getlist('requirements_ids')
         for req in requirements:
@@ -117,9 +115,9 @@ def change_order(testcase_id1, testcase_id2):
 @perm_to_view_required
 def export():
     testcases = db.session.execute(db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())).scalars().all()
-    data = [("ID", "Title", "Requirements", "Preconditions", "Steps", "Expected Result", "Type", "Automated")]
+    data = [("ID", "Title", "Requirements", "Preconditions", "Steps", "Expected Result")]
     for tc in testcases:
-        data.append((tc.code_with_prefix, tc.title, ', '.join(tc.requirements_codes), tc.preconditions, tc.steps, tc.expected_result, tc.automation))
+        data.append((tc.code_with_prefix, tc.title, ', '.join(tc.requirements_codes), tc.preconditions, tc.steps, tc.expected_result))
     csv_data = create_csv(data)
     filename = f"testcases_{g.project.name.casefold()}_{date.today()}.csv"
     response = Response(

@@ -73,7 +73,6 @@ class TestCase(db.Model):
     preconditions = db.Column(db.String(200), nullable=False)
     steps = db.Column(db.String(500), nullable=False)
     expected_result = db.Column(db.String(200), nullable=False)
-    is_automated = db.Column(db.Boolean, nullable=False, default=False)
     project_id = db.Column(db.ForeignKey('project.id'))
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
@@ -81,6 +80,7 @@ class TestCase(db.Model):
     requirement_associations = db.relationship('RequirementTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
     bug_associations = db.relationship('BugTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
     testsuite_associations = db.relationship('TestSuiteCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
+    testresults_associations = db.relationship('TestResult', backref='test_case', lazy=True, cascade="all, delete-orphan")
 
     @property
     def code_with_prefix(self):
@@ -97,8 +97,8 @@ class TestCase(db.Model):
         return last_tc_order or 0
 
     @property
-    def automation(self):
-        return "Yes" if self.is_automated else "No"
+    def open_bugs(self):
+        return db.session.execute(db.select(Bug).join(BugTestCase).filter(BugTestCase.test_case_id == self.id, Bug.status != 'closed')).scalars().all()
 
 class RequirementTestCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -166,11 +166,11 @@ class TestResult(db.Model):
     @property
     def testcase_code(self):
         order = db.session.execute(db.select(TestCase.order).filter_by(id=self.test_case_id)).scalar()
-        return code_with_prefix("TC", order) if order else "Unknown"
+        return code_with_prefix("TC", order)
 
     @property
-    def open_bugs(self):
-        return db.session.execute(db.select(Bug).join(BugTestCase).filter(BugTestCase.test_case_id == self.test_case_id, Bug.status != 'Closed')).scalars().all()
+    def testcase_title(self):
+        return db.session.execute(db.select(TestCase.title).filter_by(id=self.test_case_id)).scalar()
 
     @property
     def executor(self):

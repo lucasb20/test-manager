@@ -11,34 +11,24 @@ bp = Blueprint('project', __name__, url_prefix='/project')
 @bp.route('/')
 @login_required
 def index():
-    projects = db.session.execute(
-        db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)
-    ).scalars().all()
+    projects = db.session.execute(db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)).scalars().all()
     return render_template('project/index.html', projects=projects)
 
 @bp.route('/select', methods=['GET', 'POST'])
 @login_required
 def select():
-    next_url = request.form.get('next')
     if request.method == 'POST':
-        project_id = request.form['project_id']
-        session['project_id'] = project_id
-        return redirect(next_url or url_for('project.index'))
-    projects = db.session.execute(
-        db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)
-    ).scalars().all()
+        session['project_id'] = request.form['project_id']
+        return redirect(request.args.get('next') or url_for('project.index'))
+    projects = db.session.execute(db.select(Project).join(ProjectMember).filter(ProjectMember.user_id == g.user.id)).scalars().all()
     return render_template('project/select.html', projects=projects)
 
 @bp.route('/<int:project_id>')
 @perm_to_view_required
 def detail(project_id):
     project = db.get_or_404(Project, project_id)
-    total_reqs = db.session.execute(
-        db.select(db.func.count()).select_from(Requirement).filter_by(project_id=project.id)
-    ).scalar()
-    total_tcs = db.session.execute(
-        db.select(db.func.count()).select_from(TestCase).filter_by(project_id=project.id)
-    ).scalar()
+    total_reqs = db.session.execute(db.select(db.func.count()).select_from(Requirement).filter_by(project_id=project.id)).scalar()
+    total_tcs = db.session.execute(db.select(db.func.count()).select_from(TestCase).filter_by(project_id=project.id)).scalar()
     data = {
         "total_reqs": total_reqs,
         "total_tcs": total_tcs
@@ -51,7 +41,11 @@ def create():
     form = ProjectForm(request.form)
     if request.method == 'POST' and form.validate():
         try:
-            project = Project(name=form.name.data, description=form.description.data, manager_id=g.user.id)
+            project = Project(
+                name=form.name.data,
+                description=form.description.data,
+                manager_id=g.user.id
+            )
             db.session.add(project)
             db.session.flush()
             project_member = ProjectMember(project_id=project.id, user_id=g.user.id, role="manager")
@@ -90,15 +84,9 @@ def delete(project_id):
 @perm_to_view_required
 def export(project_id):
     project = db.get_or_404(Project, project_id)
-    requirements = db.session.execute(
-        db.select(Requirement).filter_by(project_id=project_id).order_by(Requirement.order.asc())
-    ).scalars().all()
-    testcases = db.session.execute(
-        db.select(TestCase).filter_by(project_id=project_id).order_by(TestCase.order.asc())
-    ).scalars().all()
-    bugs = db.session.execute(
-        db.select(Bug).filter_by(project_id=project_id).order_by(Bug.order.asc())
-    ).scalars().all()
+    requirements = db.session.execute(db.select(Requirement).filter_by(project_id=project_id).order_by(Requirement.order.asc())).scalars().all()
+    testcases = db.session.execute(db.select(TestCase).filter_by(project_id=project_id).order_by(TestCase.order.asc())).scalars().all()
+    bugs = db.session.execute(db.select(Bug).filter_by(project_id=project_id).order_by(Bug.order.asc())).scalars().all()
     project_data = {
         'name': project.name,
         'description': project.description,
@@ -106,7 +94,8 @@ def export(project_id):
             req.code_with_prefix: {
                 'title': req.title,
                 'description': req.description,
-                'priority': req.priority,
+                'type': req.type,
+                'priority': req.priority
             } for req in requirements
         },
         'testcases': {
@@ -115,9 +104,7 @@ def export(project_id):
                 'requirements': ', '.join(tc.requirements_codes),
                 'preconditions': tc.preconditions,
                 'steps': tc.steps,
-                'expected_result': tc.expected_result,
-                'is_functional': tc.is_functional,
-                'is_automated': tc.is_automated,
+                'expected_result': tc.expected_result
             } for tc in testcases
         },
         'bugs': {
@@ -126,7 +113,7 @@ def export(project_id):
                 'description': bug.description,
                 'testcases': ', '.join(bug.testcases_codes),
                 'status': bug.status,
-                'priority': bug.priority,
+                'priority': bug.priority
             } for bug in bugs
         }
     }
@@ -165,7 +152,8 @@ def import_project():
                         project_id=project.id,
                         title=req_data.get('title'),
                         description=req_data.get('description', ''),
-                        priority=req_data.get('priority', 'High'),
+                        type=req_data.get('type'),
+                        priority=req_data.get('priority', 'high'),
                         order=order
                     )
                     db.session.add(req)
@@ -181,8 +169,6 @@ def import_project():
                         preconditions=tc_data.get('preconditions'),
                         steps=tc_data.get('steps'),
                         expected_result=tc_data.get('expected_result'),
-                        is_functional=tc_data.get('is_functional', True),
-                        is_automated=tc_data.get('is_automated', False),
                         order=order
                     )
                     db.session.add(tc)
@@ -210,11 +196,7 @@ def import_project():
                     db.session.flush()
                     for tc_code in bug_data.get('testcases', '').split(', '):
                         if tc_code in tcs:
-                            btc = BugTestCase(
-                                bug_id=bug.id,
-                                test_case_id=tcs[tc_code].id
-                            )
-                            db.session.add(btc)
+                            db.session.add(BugTestCase(bug_id=bug.id, test_case_id=tcs[tc_code].id))
                     order += 1
                 db.session.commit()
                 return redirect(url_for('project.detail', project_id=project.id))

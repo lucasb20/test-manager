@@ -16,9 +16,6 @@
     <div class="mb-3">
         {{ render_field(form.expected_result, class="form-control", list="expected_result_suggestions", autocomplete="off") }}
     </div>
-    <div class="mb-3">
-        {{ render_field(form.is_automated, class="form-check-input") }}
-    </div>
     <button type="submit" class="btn btn-primary">Create Test Case</button>
     <a href="{{ url_for('testcase.index') }}" class="btn btn-secondary">Back to List</a>
 	{% if requirements %}

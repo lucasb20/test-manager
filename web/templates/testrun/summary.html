@@ -13,7 +13,7 @@
 <p><strong>Total Duration:</strong> {{ data.total_duration }}s ({{ data.total_duration_min}} min)</p>
 <p><strong>Percent Passed:</strong> {{ data.percent_passed }}%</p>
 <table class="table">
-	<thead class="table-dark table-striped table-bordered mt-3">
+	<thead class="table-dark mt-3">
 		<tr>
 			<th>Test Case ID</th>
 			<th>Result</th>
@@ -25,23 +25,24 @@
 			<th>Open Bugs</th>
 		</tr>
 	</thead>
-	{% for result in results %}
+	{% for testresult in testresults %}
 	<tr>
-		<td><a href="{{ url_for('testcase.detail', testcase_id=result.test_case_id) }}" class="text-primary">{{ result.testcase_code }}</a></td>
-		<td class="{% if result.status == 'pass' %}table-success{% elif result.status == 'fail' %}table-danger{% else %}table-warning{% endif %}"
-		    >{{ result.status }}</td>
-		<td>{{ result.executor }}</td>
-		<td>{{ result.executed_at | format_datetime }}</td>
-		<td>{{ result.duration }}s</td>
-		<td>{{ result.notes }}</td>
+		<td><a href="{{ url_for('testcase.detail', testcase_id=testresult.test_case.id) }}" class="text-primary" title="{{ testresult.test_case.title }}">{{ testresult.test_case.code_with_prefix }}</a></td>
+		<td class="{% if testresult.status == 'pass' %}table-success{% elif testresult.status == 'fail' %}table-danger{% else %}table-warning{% endif %}">
+			{{ testresult.status }}
+		</td>
+		<td>{{ testresult.executor }}</td>
+		<td>{{ testresult.executed_at | format_datetime }}</td>
+		<td>{{ testresult.duration }}s</td>
+		<td>{{ testresult.notes }}</td>
 		<td>
 			<div class="d-flex gap-1">
-				<a href="{{ url_for('testrun.edit_result', testresult_id=result.id) }}" class="btn btn-secondary btn-sm">Edit</a>
-				<a href="{{ url_for('testrun.report_bug', testresult_id=result.id) }}" class="btn btn-info btn-sm">Report Bug</a>
+				<a href="{{ url_for('testrun.run_case', testrun_id=testrun.id, testresult_id=testresult.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+				<a href="{{ url_for('testrun.report_bug', testresult_id=testresult.id) }}" class="btn btn-info btn-sm">Report Bug</a>
 			</div>
 		</td>
 		<td>
-			{% for bug in result.open_bugs %}
+			{% for bug in testresult.test_case.open_bugs %}
 			<a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}" title="{{ bug.title }}">{{ bug.code_with_prefix }}</a>
 			{% endfor %}
 		</td>

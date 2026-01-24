@@ -8,7 +8,6 @@
 <p><strong>Preconditions:</strong> {{ testcase.preconditions }}</p>
 <p><strong>Steps:</strong> {{ testcase.steps | replace('\n','<br/>') | safe }}</p>
 <p><strong>Expected Result:</strong> {{ testcase.expected_result }}</p>
-<p><strong>Automation:</strong> {{ testcase.automation }}</p>
 <p><strong>Created At:</strong> {{ testcase.created_at | format_datetime }}</p>
 <p><strong>Updated At:</strong> {{ testcase.updated_at | format_datetime }}</p>
 

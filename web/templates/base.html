@@ -12,12 +12,24 @@
 			<nav>
 				<ul class="nav nav-underline">
 					{% if g.user %}
-					<li class="nav-item"><a href="{{ url_for('bugtracking.index') }}" class="nav-link text-light">Bug Tracking</a></li>
-					<li class="nav-item"><a href="{{ url_for('testsuite.index') }}" class="nav-link text-light">Test Suites</a></li>
-					<li class="nav-item"><a href="{{ url_for('testcase.index') }}" class="nav-link text-light">Test Cases</a></li>
-					<li class="nav-item"><a href="{{ url_for('requirement.index') }}" class="nav-link text-light">Requirements</a></li>
-					<li class="nav-item"><a href="{{ url_for('project.index') }}" class="nav-link text-light">Projects</a></li>
-					<li class="nav-item"><a href="{{ url_for('profile.index') }}" class="btn btn-outline-light">{{ g.user.name }}</a></li>
+					<li class="nav-item">
+						<a href="{{ url_for('bugtracking.index') }}" class="nav-link text-light {% if request.blueprint == 'bugtracking' %}active{% endif %}">Bug Tracking</a>
+					</li>
+					<li class="nav-item">
+						<a href="{{ url_for('testsuite.index') }}" class="nav-link text-light {% if request.blueprint == 'testsuite' %}active{% endif %}">Test Suites</a>
+					</li>
+					<li class="nav-item">
+						<a href="{{ url_for('testcase.index') }}" class="nav-link text-light {% if request.blueprint == 'testcase' %}active{% endif %}">Test Cases</a>
+					</li>
+					<li class="nav-item">
+						<a href="{{ url_for('requirement.index') }}" class="nav-link text-light {% if request.blueprint == 'requirement' %}active{% endif %}">Requirements</a>
+					</li>
+					<li class="nav-item">
+						<a href="{{ url_for('project.index') }}" class="nav-link text-light {% if request.blueprint == 'project' %}active{% endif %}">Projects</a>
+					</li>
+					<li class="nav-item">
+						<a href="{{ url_for('profile.index') }}" class="btn btn-outline-light">{{ g.user.name }}</a>
+					</li>
 					<li class="nav-item"><a href="{{ url_for('auth.logout') }}" class="nav-link text-warning">Log Out</a></li>
 					{% else %}
 					<li class="nav-item"><a href="{{ url_for('auth.register') }}" class="nav-link text-light">Register</a></li>

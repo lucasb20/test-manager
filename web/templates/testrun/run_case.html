@@ -1,53 +1,53 @@
 {% extends 'base.html' %}
+{% from "_formhelpers.html" import render_field %}
 
 {% block content %}
 <h2>Test Run</h2>
-<p>Running testcase {{ testrun.total_executed + 1 }} of {{ testrun.total_results }}</p>
+<ul class="pagination">
+	{% for r in testresults %}
+	<li class="page-item{% if r.executed_at %} active{% endif %}">
+		<a class="page-link" href="{{ url_for('testrun.run_case', testrun_id=testrun.id, testresult_id=r.id) }}">{{ loop.index }}</a>
+	</li>
+	{% endfor %}
+</ul>
 <p><strong>ID</strong>: {{ testcase.code_with_prefix }}</p>
 <p>
-	<strong>Open Bugs</strong>:
-	{% for bug in testresult.open_bugs %}
-	<a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}" title="{{ bug.title }}">{{ bug.code_with_prefix }}</a>
-	{% else %}
-	None.
-	{% endfor %}
+<strong>Open Bugs</strong>:
+{% for bug in testcase.open_bugs %}
+<a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}" title="{{ bug.title }}">{{ bug.code_with_prefix }}</a>
+{% else %}
+None.
+{% endfor %}
 </p>
 <p><strong>Title</strong>: {{ testcase.title }}</p>
 <p><strong>Preconditions</strong>: {{ testcase.preconditions }}</p>
 <p><strong>Steps</strong>: {{ testcase.steps | replace('\n','<br/>') | safe }}</p>
 <p><strong>Expected Results</strong>: {{ testcase.expected_result }}</p>
 <form method="post">
-    <div class="mb-3">
-        <select name="status" class="form-select" required>
-            <option value="" disabled selected>Select status</option>
-            <option value="pass">Pass</option>
-            <option value="fail">Fail</option>
-            <option value="skip">Skip</option>
-        </select>
-    </div>
-    <div class="mb-3">
-        <label for="notes" class="form-label">Notes:</label>
-        <textarea name="notes" class="form-control" maxlength="200"></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-    <a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Pause</a>
-    <a href="{{ url_for('testrun.report_bug', testresult_id=testresult.id) }}" class="btn btn-info">Report Bug</a>
+	<div class="mb-3">
+        {{ render_field(form.status, class="form-select") }}
+	</div>
+	<div class="mb-3">
+        {{ render_field(form.notes, class="form-control") }}
+	</div>
+	<button type="submit" class="btn btn-primary">Submit</button>
+	<a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Pause</a>
 </form>
 
 <script>
-    let start_time;
-    document.addEventListener('DOMContentLoaded', function() {
-        start_time = Date.now();
-    });
-    document.querySelector('select[name="status"]').addEventListener('change', function() {
-        const elapsed_time = Date.now() - start_time;
-        if (!(this.form.querySelector('input[name="duration"]'))) {
-            let input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'duration';
-            input.value = Math.floor(elapsed_time / 1000);
-            this.form.appendChild(input);
-        }
-    });
+	let start_time;
+	document.addEventListener('DOMContentLoaded', function() {
+		start_time = Date.now();
+	});
+	document.querySelector('select[name="status"]').addEventListener('change', function() {
+		const elapsed_time = Date.now() - start_time;
+		if (!(this.form.querySelector('input[name="duration"]'))) {
+			let input = document.createElement('input');
+			input.type = 'hidden';
+			input.name = 'duration';
+			input.value = Math.floor(elapsed_time / 1000);
+			this.form.appendChild(input);
+		}
+	});
 </script>
 {% endblock %}

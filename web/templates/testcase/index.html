@@ -12,7 +12,7 @@
 
 {% if testcases %}
 <table class="table">
-	<thead class="table-dark table-striped table-bordered mt-3">
+	<thead class="table-dark mt-3">
 		<tr>
 			<th>ID</th>
 			<th>Requirements</th>
@@ -20,7 +20,6 @@
 			<th>Preconditions</th>
 			<th>Steps</th>
 			<th>Expected Result</th>
-			<th>Automation</th>
 			<th>Last Update</th>
 		</tr>
 	</thead>
@@ -31,9 +30,8 @@
 			<td>{{ testcase.requirements_codes | join(', ') }}</td>
 			<td><a href="{{ url_for('testcase.detail', testcase_id=testcase.id) }}" class="text-primary">{{ testcase.title }}</a></td>
 			<td>{{ testcase.preconditions }}</td>
-			<td>{{ testcase.steps }}</td>
+			<td>{{ testcase.steps | replace('\n','<br/>') | safe  }}</td>
 			<td>{{ testcase.expected_result }}</td>
-			<td>{{ testcase.automation }}</td>
 			<td>{{ testcase.updated_at | format_datetime }}</td>
 		</tr>
 		{% endfor %}

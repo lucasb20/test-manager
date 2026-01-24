@@ -1,18 +1,16 @@
 from datetime import datetime
 from flask import Blueprint, request, render_template, redirect, url_for, g, flash, Response
 from decorators import perm_to_view_required, perm_to_edit_required
-from forms import BugForm
+from forms import BugForm, TestResultForm
 from db import db, TestCase, TestSuite, TestSuiteCase, TestRun, TestResult, Bug, BugTestCase
-from utils import create_csv
+from utils import create_csv, format_datetime
 
 bp = Blueprint('testrun', __name__, url_prefix='/testrun')
 
 @bp.route('/<int:testsuite_id>/create', methods=['GET'])
 @perm_to_edit_required
 def create(testsuite_id):
-    tscs = db.session.execute(
-        db.select(TestSuiteCase).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.asc())
-    ).scalars().all()
+    tscs = db.session.execute(db.select(TestSuiteCase).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.asc())).scalars().all()
     if len(tscs) == 0:
         flash('No test cases in the test suite. Please add test cases before creating a test run.')
         return redirect(url_for('testsuite.detail', testsuite_id=testsuite_id))
@@ -22,8 +20,7 @@ def create(testsuite_id):
     for tsc in tscs:
         testresult = TestResult(
             test_run_id=testrun.id,
-            test_case_id=tsc.test_case_id,
-            executed_by=g.user.id,
+            test_case_id=tsc.test_case_id
         )
         db.session.add(testresult)
     db.session.commit()
@@ -49,40 +46,34 @@ def delete(testrun_id):
 @perm_to_edit_required
 def run_case(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
-    if testrun.is_finished:
-        return redirect(url_for('testrun.summary', testrun_id=testrun.id))
-    testresult = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id, executed_at=None)).scalars().first()
-    if request.method == 'POST':
-        testresult.executed_at = datetime.now()
-        testresult.executed_by = g.user.id
-        testresult.status = request.form['status']
-        testresult.notes = request.form['notes']
-        testresult.duration = int(request.form['duration'])
+    if 'testresult_id' in request.args:
+        testresult = db.get_or_404(TestResult, request.args.get('testresult_id'))
+    else:
+        testresult = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id, executed_at=None)).scalars().first()
+        if not testresult:
+            return redirect(url_for('testrun.summary', testrun_id=testrun.id))
+    form = TestResultForm(request.form, obj=testresult)
+    if request.method == 'POST' and form.validate():
+        if testresult.executed_at is None:
+            testresult.executed_at = datetime.now()
+            testresult.executed_by = g.user.id
+            testresult.duration = int(request.form['duration'])
+        testresult.status = form.status.data
+        testresult.notes = form.notes.data
         db.session.commit()
         return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
     testcase = db.session.get(TestCase, testresult.test_case_id)
-    return render_template('testrun/run_case.html', testrun=testrun, testcase=testcase, testresult=testresult)
-
-@bp.route('/<int:testresult_id>/edit', methods=['GET', 'POST'])
-@perm_to_edit_required
-def edit_result(testresult_id):
-    testresult = db.get_or_404(TestResult, testresult_id)
-    if request.method == 'POST':
-        testresult.status = request.form['status']
-        testresult.notes = request.form['notes']
-        db.session.commit()
-        return redirect(url_for('testrun.summary', testrun_id=testresult.test_run_id))
-    testcase = db.session.get(TestCase, testresult.test_case_id)
-    return render_template('testrun/edit.html', testresult=testresult, testcase=testcase)
+    testresults = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id)).scalars().all()
+    return render_template('testrun/run_case.html', form=form, testrun=testrun, testcase=testcase, testresults=testresults)
 
 @bp.route('/<int:testrun_id>/summary', methods=['GET'])
 @perm_to_view_required
 def summary(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
-    results = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id)).scalars().all()
-    total_tests = len(results)
-    passed_tests = sum(1 for r in results if r.status == 'pass')
-    failed_tests = sum(1 for r in results if r.status == 'fail')
+    testresults = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id)).scalars().all()
+    total_tests = len(testresults)
+    passed_tests = sum(1 for r in testresults if r.status == 'pass')
+    failed_tests = sum(1 for r in testresults if r.status == 'fail')
     skipped_tests = total_tests - passed_tests - failed_tests
     percent_passed = round((passed_tests / total_tests * 100), 2) if total_tests > 0 else 0
     data = {
@@ -94,7 +85,7 @@ def summary(testrun_id):
         'total_duration_min': testrun.duration // 60,
         'percent_passed': percent_passed
     }
-    return render_template('testrun/summary.html', testrun=testrun, results=results, data=data)
+    return render_template('testrun/summary.html', testrun=testrun, testresults=testresults, data=data)
 
 @bp.route('/<int:testresult_id>/report_bug', methods=['GET', 'POST'])
 @perm_to_edit_required
@@ -123,18 +114,18 @@ def report_bug(testresult_id):
 @perm_to_view_required
 def export(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
-    results = db.session.execute(
+    testresults = db.session.execute(
         db.select(TestResult).filter_by(test_run_id=testrun.id)
     ).scalars().all()
-    data = [("Test Case Code", "Status", "Executed By", "Executed At", "Duration", "Notes")]
-    for result in results:
+    data = [("Test Case", "Status", "Executed By", "Executed At", "Duration", "Notes")]
+    for testresult in testresults:
         data.append((
-            result.testcase_code,
-            result.status,
-            result.executor,
-            result.executed_at.strftime("%Y-%m-%d %H:%M"),
-            result.duration,
-            result.notes
+            testresult.testcase_code,
+            testresult.status,
+            testresult.executor,
+            format_datetime(testresult.executed_at),
+            testresult.duration,
+            testresult.notes
         ))
     csv_data = create_csv(data)
     name = db.session.execute(
