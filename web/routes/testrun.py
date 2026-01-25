@@ -64,7 +64,7 @@ def run_case(testrun_id):
         return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
     testcase = db.session.get(TestCase, testresult.test_case_id)
     testresults = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id)).scalars().all()
-    return render_template('testrun/run_case.html', form=form, testrun=testrun, testcase=testcase, testresults=testresults)
+    return render_template('testrun/run_case.html', form=form, testrun=testrun, testcase=testcase, testresults=testresults, testresult_id=testresult.id)
 
 @bp.route('/<int:testrun_id>/summary', methods=['GET'])
 @perm_to_view_required
