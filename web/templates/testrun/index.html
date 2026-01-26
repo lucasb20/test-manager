@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Previous Test Runs - {{ ts_name }}</h2>
+<h2>Test Runs</h2>
 <div class="mb-3">
-	<a href="{{ url_for('testsuite.detail', testsuite_id=request.view_args['testsuite_id']) }}" class="btn btn-secondary">Back to Test Suite</a>
+	<a href="{{ url_for('testrun.create') }}" class="btn btn-primary">Start Test Run</a>
+	<a href="{{ url_for('project.select', next=url_for('testrun.index')) }}" class="btn btn-secondary">Select Project</a>
 </div>
 <table class="table">
 	<thead class="table-dark mt-3">

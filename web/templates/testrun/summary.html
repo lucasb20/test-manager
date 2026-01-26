@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Test Run Summary</h2>
 <div class="mb-3">
-	<a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Back to Previous Runs</a>
+	<a href="{{ url_for('testrun.index') }}" class="btn btn-secondary">Back to List</a>
 	<a href="{{ url_for('testrun.export', testrun_id=testrun.id) }}" class="btn btn-info">Export CSV</a>
 </div>
 <p><strong>Total Tests:</strong> {{ data.total_tests }}</p>

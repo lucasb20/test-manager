@@ -7,9 +7,15 @@ from utils import create_csv, format_datetime
 
 bp = Blueprint('testrun', __name__, url_prefix='/testrun')
 
-@bp.route('/<int:testsuite_id>/create', methods=['GET'])
+@bp.route('/', methods=['GET'])
+@perm_to_view_required
+def index():
+    testruns = db.session.execute(db.select(TestRun).filter_by(project_id=g.project.id).order_by(TestRun.created_at.desc())).scalars().all()
+    return render_template('testrun/index.html', testruns=testruns)
+
+@bp.route('/create', methods=['GET', 'POST'])
 @perm_to_edit_required
-def create(testsuite_id):
+def create():
     tscs = db.session.execute(db.select(TestSuiteCase).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.asc())).scalars().all()
     if len(tscs) == 0:
         flash('No test cases in the test suite. Please add test cases before creating a test run.')
@@ -26,13 +32,6 @@ def create(testsuite_id):
     db.session.commit()
     return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
 
-@bp.route('/<int:testsuite_id>/previous', methods=['GET'])
-@perm_to_view_required
-def previous(testsuite_id):
-    testruns = db.session.execute(db.select(TestRun).filter_by(test_suite_id=testsuite_id).order_by(TestRun.created_at.desc())).scalars().all()
-    ts_name = db.session.execute(db.select(TestSuite.name).filter_by(id=testsuite_id)).scalar()
-    return render_template('testrun/previous.html', testruns=testruns, ts_name=ts_name)
-
 @bp.route('/<int:testrun_id>/delete', methods=['POST'])
 @perm_to_edit_required
 def delete(testrun_id):
@@ -40,7 +39,7 @@ def delete(testrun_id):
     testsuite_id = testrun.test_suite_id
     db.session.delete(testrun)
     db.session.commit()
-    return redirect(url_for('testrun.previous', testsuite_id=testsuite_id))
+    return redirect(url_for('testrun.index', testsuite_id=testsuite_id))
 
 @bp.route('/<int:testrun_id>/run_case', methods=['GET', 'POST'])
 @perm_to_edit_required

@@ -25,6 +25,7 @@ class Project(db.Model):
     requirements = db.relationship('Requirement', backref='project', lazy=True, cascade="all, delete-orphan")
     test_cases = db.relationship('TestCase', backref='project', lazy=True, cascade="all, delete-orphan")
     test_suites = db.relationship('TestSuite', backref='project', lazy=True, cascade="all, delete-orphan")
+    test_runs = db.relationship('TestRun', backref='project', lazy=True, cascade="all, delete-orphan")
     bugs = db.relationship('Bug', backref='project', lazy=True, cascade="all, delete-orphan")
 
     @property
@@ -56,7 +57,7 @@ class Requirement(db.Model):
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    testcase_associations = db.relationship('RequirementTestCase', backref='requirement', lazy=True, cascade="all, delete-orphan")
+    testcases_associations = db.relationship('RequirementTestCase', backref='requirement', lazy=True, cascade="all, delete-orphan")
 
     @property
     def code_with_prefix(self):
@@ -79,7 +80,7 @@ class TestCase(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     requirement_associations = db.relationship('RequirementTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
     bug_associations = db.relationship('BugTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
-    testsuite_associations = db.relationship('TestSuiteCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
+    testsuites_associations = db.relationship('TestSuiteCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
     testresults_associations = db.relationship('TestResult', backref='test_case', lazy=True, cascade="all, delete-orphan")
 
     @property
@@ -112,8 +113,7 @@ class TestSuite(db.Model):
     project_id = db.Column(db.ForeignKey('project.id'))
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    testcase_associations = db.relationship('TestSuiteCase', backref='test_suite', lazy=True, cascade="all, delete-orphan")
-    testruns = db.relationship('TestRun', backref='test_suite', lazy=True, cascade="all, delete-orphan")
+    testcases_associations = db.relationship('TestSuiteCase', backref='test_suite', lazy=True, cascade="all, delete-orphan")
 
 class TestSuiteCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -132,7 +132,7 @@ class TestSuiteCase(db.Model):
 
 class TestRun(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    test_suite_id = db.Column(db.ForeignKey('test_suite.id'))
+    project_id = db.Column(db.ForeignKey('project.id'))
     created_at = db.Column(db.DateTime, default=datetime.now)
     testresults = db.relationship('TestResult', backref='test_run', lazy=True, cascade="all, delete-orphan")
 
