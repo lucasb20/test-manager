@@ -44,10 +44,9 @@ def create():
 @perm_to_edit_required
 def delete(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
-    testsuite_id = testrun.test_suite_id
     db.session.delete(testrun)
     db.session.commit()
-    return redirect(url_for('testrun.index', testsuite_id=testsuite_id))
+    return redirect(url_for('testrun.index'))
 
 @bp.route('/<int:testrun_id>/run_case', methods=['GET', 'POST'])
 @perm_to_edit_required
