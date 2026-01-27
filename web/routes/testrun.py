@@ -25,14 +25,17 @@ def create():
             testrun = TestRun(project_id=g.project.id)
             db.session.add(testrun)
             db.session.flush()
-            # TODO: tcs = SELECT id FROM test_case JOIN test_suite_case ON test_suite_case.test_case_id = test_case.id WHERE test_suite.id IN [...];
-            for tc_id in tcs:
-                db.session.add(TestResult(test_run_id=testrun.id, test_case_id=tc_id))
+            tcs_set = set()
+            for ts_id in tss_ids:
+                tcs = db.session.execute(db.select(TestSuiteCase.test_case_id).filter_by(test_suite_id=ts_id).order_by(TestSuiteCase.order.asc())).scalars().all()
+                tcs_set = tcs_set.union(tcs)
+                for tc_id in tcs:
+                    db.session.add(TestResult(test_run_id=testrun.id, test_case_id=tc_id))
             for tc_id in tcs_ids:
-                if tc_id not in tcs:
+                if tc_id not in tcs_set:
                     db.session.add(TestResult(test_run_id=testrun.id, test_case_id=tc_id)) 
             db.session.commit()
-        return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
+            return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
     testsuites = db.session.execute(db.select(TestSuite).filter_by(project_id=g.project.id).order_by(TestSuite.created_at.desc())).scalars().all()
     testcases = db.session.execute(db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())).scalars().all()
     return render_template('testrun/create.html', testsuites=testsuites, testcases=testcases)
@@ -68,7 +71,7 @@ def run_case(testrun_id):
         return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
     testcase = db.session.get(TestCase, testresult.test_case_id)
     testresults = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id)).scalars().all()
-    return render_template('testrun/run_case.html', form=form, testrun=testrun, testcase=testcase, testresults=testresults, testresult_id=testresult.id)
+    return render_template('testrun/run_case.html', form=form, testrun=testrun, testcase=testcase, testresults=testresults)
 
 @bp.route('/<int:testrun_id>/summary', methods=['GET'])
 @perm_to_view_required

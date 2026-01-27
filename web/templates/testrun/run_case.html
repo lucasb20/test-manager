@@ -31,7 +31,7 @@ None.
         {{ render_field(form.notes, class="form-control") }}
 	</div>
 	<button type="submit" class="btn btn-primary">Submit</button>
-	<a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Pause</a>
+	<a href="{{ url_for('testrun.index') }}" class="btn btn-secondary">Pause</a>
 </form>
 
 <script>
