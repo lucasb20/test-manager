@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Test Suite</h2>
 
-<p><strong>Name:</strong> {{ testsuite.name }}</p>
+<p><strong>Name:</strong> {{ testsuite.title }}</p>
 <p><strong>Description:</strong> {{ testsuite.description }}</p>
 <p><strong>Total Test Cases:</strong> {{ tscs | length }}</p>
 <p><strong>Created At:</strong> {{ testsuite.created_at | format_datetime }}</p>

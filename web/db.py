@@ -108,7 +108,7 @@ class RequirementTestCase(db.Model):
 
 class TestSuite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(500), default=None)
     project_id = db.Column(db.ForeignKey('project.id'))
     created_at = db.Column(db.DateTime, default=datetime.now)

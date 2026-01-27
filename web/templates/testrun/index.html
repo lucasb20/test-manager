@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Test Runs</h2>
 <div class="mb-3">
-	<a href="{{ url_for('testrun.create') }}" class="btn btn-primary">Start Test Run</a>
+	<a href="{{ url_for('testrun.create') }}" class="btn btn-primary">Create Test Run</a>
 	<a href="{{ url_for('project.select', next=url_for('testrun.index')) }}" class="btn btn-secondary">Select Project</a>
 </div>
 <table class="table">

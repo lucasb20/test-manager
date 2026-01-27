@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Test Run</h2>
+<form method="post">
+	<h3 class="mt-3">Test Suites</h3>
+	{% for ts in testsuites %}
+	<div class="form mb-3">
+		<input type="checkbox" id="testsuite_{{ ts.id }}" name="testsuites_ids" value="{{ ts.id }}">
+		<label for="testsuite_{{ ts.id }}" class="form-label">{{ ts.title }}</label>
+	</div>
+	{% else %}
+	<p>No test cases found.</p>
+	{% endfor %}
+	<h3 class="mt-3">Test Cases</h3>
+	{% for tc in testcases %}
+	<div class="form mb-3">
+		<input type="checkbox" id="testcase_{{ tc.id }}" name="testcases_ids" value="{{ tc.id }}">
+		<label for="testcase_{{ tc.id }}" class="form-label">{{ tc.code_with_prefix }} {{ tc.title }}</label>
+	</div>
+	{% else %}
+	<p>No test cases found.</p>
+	{% endfor %}
+	<button type="submit" class="btn btn-primary">Create TestRun</button>
+	<a href="{{ url_for('testrun.index') }}" class="btn btn-secondary">Back to List</a>
+</form>
+{% endblock %}

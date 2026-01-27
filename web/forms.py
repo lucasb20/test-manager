@@ -36,7 +36,7 @@ class TestCaseForm(Form):
     expected_result = StringField('Expected Result', [validators.Length(max=200)])
 
 class TestSuiteForm(Form):
-    name = StringField('Name', [validators.InputRequired(), validators.Length(min=1, max=200)])
+    title = StringField('Title', [validators.InputRequired(), validators.Length(min=1, max=200)])
     description = TextAreaField('Description', [validators.Length(max=500)])
 
 class TestResultForm(Form):

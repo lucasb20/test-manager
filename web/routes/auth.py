@@ -24,8 +24,12 @@ def register():
     form = RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
         try:
-            new_user = User(name=form.name.data, email=form.email.data, password=generate_password_hash(form.password.data))
-            db.session.add(new_user)
+            user = User(
+                name=form.name.data,
+                email=form.email.data,
+                password=generate_password_hash(form.password.data)
+            )
+            db.session.add(user)
             db.session.commit()
             flash('Registration successful! Please log in.')
             return redirect(url_for('auth.login'))

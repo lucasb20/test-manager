@@ -16,21 +16,26 @@ def index():
 @bp.route('/create', methods=['GET', 'POST'])
 @perm_to_edit_required
 def create():
-    tscs = db.session.execute(db.select(TestSuiteCase).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.asc())).scalars().all()
-    if len(tscs) == 0:
-        flash('No test cases in the test suite. Please add test cases before creating a test run.')
-        return redirect(url_for('testsuite.detail', testsuite_id=testsuite_id))
-    testrun = TestRun(test_suite_id=testsuite_id)
-    db.session.add(testrun)
-    db.session.flush()
-    for tsc in tscs:
-        testresult = TestResult(
-            test_run_id=testrun.id,
-            test_case_id=tsc.test_case_id
-        )
-        db.session.add(testresult)
-    db.session.commit()
-    return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
+    if request.method == 'POST':
+        tss_ids = request.form.getlist('testsuites_ids')
+        tcs_ids = request.form.getlist('testcases_ids')
+        if len(tss_ids) == 0 and len(tcs_ids) == 0:
+            flash('No test cases in the test suite. Please add test cases before creating a test run.')
+        else:
+            testrun = TestRun(project_id=g.project.id)
+            db.session.add(testrun)
+            db.session.flush()
+            # TODO: tcs = SELECT id FROM test_case JOIN test_suite_case ON test_suite_case.test_case_id = test_case.id WHERE test_suite.id IN [...];
+            for tc_id in tcs:
+                db.session.add(TestResult(test_run_id=testrun.id, test_case_id=tc_id))
+            for tc_id in tcs_ids:
+                if tc_id not in tcs:
+                    db.session.add(TestResult(test_run_id=testrun.id, test_case_id=tc_id)) 
+            db.session.commit()
+        return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
+    testsuites = db.session.execute(db.select(TestSuite).filter_by(project_id=g.project.id).order_by(TestSuite.created_at.desc())).scalars().all()
+    testcases = db.session.execute(db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())).scalars().all()
+    return render_template('testrun/create.html', testsuites=testsuites, testcases=testcases)
 
 @bp.route('/<int:testrun_id>/delete', methods=['POST'])
 @perm_to_edit_required
@@ -113,9 +118,7 @@ def report_bug(testresult_id):
 @perm_to_view_required
 def export(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
-    testresults = db.session.execute(
-        db.select(TestResult).filter_by(test_run_id=testrun.id)
-    ).scalars().all()
+    testresults = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id)).scalars().all()
     data = [("Test Case", "Status", "Executed By", "Executed At", "Duration", "Notes")]
     for testresult in testresults:
         data.append((
@@ -127,10 +130,7 @@ def export(testrun_id):
             testresult.notes
         ))
     csv_data = create_csv(data)
-    name = db.session.execute(
-        db.select(TestSuite.name).filter_by(id=testrun.test_suite_id)
-    ).scalar()
-    filename = f"testrun_{name.casefold()}.csv"
+    filename = f"testrun_{g.project.name.casefold()}.csv"
     response = Response(
         csv_data,
         mimetype="text/csv",
