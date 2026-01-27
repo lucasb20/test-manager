@@ -78,6 +78,19 @@ def edit(bug_id):
         return redirect(url_for('bugtracking.detail', bug_id=bug.id))
     return render_template('bugtracking/edit.html', form=form, testcases=testcases, associated_ids=associated_ids)
 
+@bp.route('/<int:bug_id>/update_status', methods=['POST'])
+@perm_to_edit_required
+def update_status(bug_id):
+    bug = db.get_or_404(Bug, bug_id)
+    next_status = {
+        'open': 'progress',
+        'progress': 'closed',
+        'closed': 'open'
+    }
+    bug.status = next_status[bug.status]
+    db.session.commit()
+    return redirect(url_for('bugtracking.index'))
+
 @bp.route('/<int:bug_id>/delete', methods=['POST'])
 @perm_to_edit_required
 def delete(bug_id):

@@ -4,9 +4,9 @@
 <h2>Bug Tracking</h2>
 <p><strong>Total Bugs:</strong> {{ bugs | length }}</p>
 <p><strong>Open Bugs:</strong> {{ data.open_bugs }}</p>
-<p><strong>High Priority Open Bugs:</strong> {{ data.high_open_bugs }}</p>
-<p><strong>Medium Priority Open Bugs:</strong> {{ data.medium_open_bugs }}</p>
-<p><strong>Low Priority Open Bugs:</strong> {{ data.low_open_bugs }}</p>
+<p><strong>High Priority:</strong> {{ data.high_open_bugs }}</p>
+<p><strong>Medium Priority:</strong> {{ data.medium_open_bugs }}</p>
+<p><strong>Low Priority:</strong> {{ data.low_open_bugs }}</p>
 <div class="mb-3">
 	<a href="{{ url_for('bugtracking.create') }}" class="btn btn-primary">Report Bug</a>
 	<a href="{{ url_for('project.select', next=url_for('bugtracking.index')) }}" class="btn btn-secondary">Select Project</a>
@@ -21,6 +21,7 @@
 			<th>Priority</th>
 			<th>Reporter</th>
 			<th>Last Update</th>
+			<th>Actions</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -33,6 +34,11 @@
 			<td>{{ bug.priority | capitalize }}</td>
 			<td>{{ bug.reporter }}</td>
 			<td>{{ bug.updated_at | format_datetime }}</td>
+			<td>
+				<form action="{{ url_for('bugtracking.update_status', bug_id=bug.id) }}" method="post">
+					<button type="submit" class="btn btn-secondary btn-sm">Update Status</button>
+				</form>
+			</td>
 		</tr>
 		{% endfor %}
 	</tbody>
