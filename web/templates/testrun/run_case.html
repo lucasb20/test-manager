@@ -6,7 +6,7 @@
 <ul class="pagination">
 	{% for r in testresults %}
 	<li class="page-item{% if r.id == testresult_id %} disabled{% elif r.executed_at %} active{% endif %}">
-		<a class="page-link" href="{{ url_for('testrun.run_case', testrun_id=testrun.id, testresult_id=r.id) }}">{{ loop.index }}</a>
+		<a class="page-link" href="{{ url_for('testrun.run_case', testrun_id=request.view_args['testrun_id'], testresult_id=r.id) }}">{{ loop.index }}</a>
 	</li>
 	{% endfor %}
 </ul>

@@ -26,11 +26,11 @@
 	</thead>
 	<tbody>
 		{% for bug in bugs %}
-		<tr class="{% if bug.status == 'closed' %}table-success{% elif bug.status == 'progress' %}table-warning{% endif %}">
+		<tr {% if bug.is_closed %}class="table-success"{% endif %}>
 			<td>{{ bug.code_with_prefix }}</td>
 			<td>{{ bug.testcases_codes | join(', ') }}</td>
 			<td><a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}">{{ bug.title }}</a></td>
-			<td>{{ bug.status | capitalize }}</td>
+			<td>{{ bug.status }}</td>
 			<td>{{ bug.priority | capitalize }}</td>
 			<td>{{ bug.reporter }}</td>
 			<td>{{ bug.updated_at | format_datetime }}</td>

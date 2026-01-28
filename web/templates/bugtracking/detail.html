@@ -5,7 +5,7 @@
 <p><strong>ID:</strong> {{ bug.code_with_prefix }}</p>
 <p><strong>Title:</strong> {{ bug.title }}</p>
 <p><strong>Description:</strong> {{ bug.description }}</p>
-<p><strong>Status:</strong> {{ bug.status | capitalize }}</p>
+<p><strong>Status:</strong> {{ bug.status }}</p>
 <p><strong>Priority:</strong> {{ bug.priority | capitalize }}</p>
 <p><strong>Reporter:</strong> {{ bug.reporter }}</p>
 <p><strong>Created At:</strong> {{ bug.created_at | format_datetime }}</p>

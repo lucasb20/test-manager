@@ -99,7 +99,7 @@ class TestCase(db.Model):
 
     @property
     def open_bugs(self):
-        return db.session.execute(db.select(Bug).join(BugTestCase).filter(BugTestCase.test_case_id == self.id, Bug.status != 'closed')).scalars().all()
+        return db.session.execute(db.select(Bug).join(BugTestCase).filter(BugTestCase.test_case_id == self.id, Bug.is_closed == False)).scalars().all()
 
 class RequirementTestCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -182,7 +182,7 @@ class Bug(db.Model):
     description = db.Column(db.String(200), default=None)
     project_id = db.Column(db.ForeignKey('project.id'))
     reported_by = db.Column(db.ForeignKey('user.id'))
-    status = db.Column(ENUM('open', 'progress', 'closed'), nullable=False)
+    is_closed = db.Column(db.Boolean, nullable=False, default=False)
     priority = db.Column(ENUM('high', 'medium', 'low'), nullable=False)
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
@@ -192,6 +192,10 @@ class Bug(db.Model):
     @property
     def code_with_prefix(self):
         return code_with_prefix("BUG", self.order)
+
+    @property
+    def status(self):
+        return "Closed" if self.is_closed else "Open"
 
     @property
     def last_order(self):

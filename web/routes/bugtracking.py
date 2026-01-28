@@ -10,9 +10,8 @@ bp = Blueprint('bugtracking', __name__, url_prefix='/bugtracking')
 def index():
     bugs = db.session.execute(db.select(Bug).filter_by(project_id=g.project.id).order_by(Bug.created_at.desc())).scalars().all()
     priority = {'high': 0, 'medium': 1, 'low': 2}
-    status = {'open': 0, 'progress': 0, 'closed': 1}
-    bugs.sort(key=lambda b: ((status.get(b.status, 3)), priority.get(b.priority, 3)))
-    open_bugs = [bug for bug in bugs if bug.status != 'closed']
+    bugs.sort(key=lambda b: (int(b.is_closed), priority.get(b.priority, 3)))
+    open_bugs = [bug for bug in bugs if not bug.is_closed]
     high_open_bugs = sum(1 for bug in open_bugs if bug.priority == 'high')
     medium_open_bugs = sum(1 for bug in open_bugs if bug.priority == 'medium')
     low_open_bugs = len(open_bugs) - high_open_bugs - medium_open_bugs
@@ -33,7 +32,7 @@ def create():
         bug = Bug(
             title=form.title.data,
             description=form.description.data,
-            status=form.status.data,
+            is_closed=form.is_closed.data,
             priority=form.priority.data,
             reported_by=g.user.id,
             project_id=g.project.id
@@ -65,7 +64,7 @@ def edit(bug_id):
     if request.method == 'POST' and form.validate():
         bug.title = form.title.data
         bug.description = form.description.data
-        bug.status = form.status.data
+        bug.is_closed = form.is_closed.data
         bug.priority = form.priority.data
         db.session.flush()
         tcs_ids = request.form.getlist('testcases_ids')
@@ -82,12 +81,7 @@ def edit(bug_id):
 @perm_to_edit_required
 def update_status(bug_id):
     bug = db.get_or_404(Bug, bug_id)
-    next_status = {
-        'open': 'progress',
-        'progress': 'closed',
-        'closed': 'open'
-    }
-    bug.status = next_status[bug.status]
+    bug.is_closed = not bug.is_closed
     db.session.commit()
     return redirect(url_for('bugtracking.index'))
 

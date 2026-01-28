@@ -11,10 +11,10 @@
 		{{ render_field(form.description, class="form-control") }}
 	</div>
 	<div class="mb-3">
-		{{ render_field(form.status, class="form-select") }}
+		{{ render_field(form.priority, class="form-select") }}
 	</div>
 	<div class="mb-3">
-		{{ render_field(form.priority, class="form-select") }}
+		{{ render_field(form.is_closed, class="form-check") }}
 	</div>
 	<button type="submit" class="btn btn-primary">Create Bug</button>
 	<a href="{{ url_for('bugtracking.index') }}" class="btn btn-secondary">Back to List</a>

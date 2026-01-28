@@ -112,7 +112,7 @@ def export(project_id):
                 'title': bug.title,
                 'description': bug.description,
                 'testcases': ', '.join(bug.testcases_codes),
-                'status': bug.status,
+                'is_closed': bug.is_closed,
                 'priority': bug.priority
             } for bug in bugs
         }
@@ -188,9 +188,9 @@ def import_project():
                         project_id=project.id,
                         title=bug_data.get('title'),
                         description=bug_data.get('description'),
-                        status=bug_data.get('status'),
+                        is_closed=bug_data.get('is_closed'),
                         priority=bug_data.get('priority'),
-                        order=order,
+                        order=order
                     )
                     db.session.add(bug)
                     db.session.flush()
