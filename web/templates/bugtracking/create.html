@@ -2,7 +2,7 @@
 {% from "_formhelpers.html" import render_field %}
 
 {% block content %}
-<h2>Bug Tracking</h2>
+<h1>Bug Tracking</h1>
 <form method="post">
 	<div class="mb-3">
 		{{ render_field(form.title, class="form-control") }}
@@ -14,7 +14,7 @@
 		{{ render_field(form.priority, class="form-select") }}
 	</div>
 	<div class="mb-3">
-		{{ render_field(form.is_closed, class="form-check") }}
+		{{ render_field(form.is_closed, class="form-select") }}
 	</div>
 	<button type="submit" class="btn btn-primary">Create Bug</button>
 	<a href="{{ url_for('bugtracking.index') }}" class="btn btn-secondary">Back to List</a>
