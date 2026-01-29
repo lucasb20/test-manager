@@ -29,9 +29,11 @@ def detail(project_id):
     project = db.get_or_404(Project, project_id)
     total_reqs = db.session.execute(db.select(db.func.count()).select_from(Requirement).filter_by(project_id=project.id)).scalar()
     total_tcs = db.session.execute(db.select(db.func.count()).select_from(TestCase).filter_by(project_id=project.id)).scalar()
+    total_bugs = db.session.execute(db.select(db.func.count()).select_from(Bug).filter_by(project_id=project.id)).scalar()
     data = {
         "total_reqs": total_reqs,
-        "total_tcs": total_tcs
+        "total_tcs": total_tcs,
+        "total_bugs": total_bugs
     }
     return render_template('project/detail.html', project=project, data=data)
 
@@ -48,8 +50,7 @@ def create():
             )
             db.session.add(project)
             db.session.flush()
-            project_member = ProjectMember(project_id=project.id, user_id=g.user.id, role="manager")
-            db.session.add(project_member)
+            db.session.add(ProjectMember(project_id=project.id, user_id=g.user.id, role="manager"))
             db.session.commit()
             return redirect(url_for('project.detail', project_id=project.id))
         except IntegrityError:

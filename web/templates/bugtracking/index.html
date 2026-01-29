@@ -26,7 +26,7 @@
 	</thead>
 	<tbody>
 		{% for bug in bugs %}
-		<tr {% if bug.is_closed %}class="table-success"{% endif %}>
+		<tr {% if bug.is_closed %}class="table-secondary"{% endif %}>
 			<td>{{ bug.code_with_prefix }}</td>
 			<td>{{ bug.testcases_codes | join(', ') }}</td>
 			<td><a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}">{{ bug.title }}</a></td>

@@ -9,14 +9,13 @@ bp = Blueprint('bugtracking', __name__, url_prefix='/bugtracking')
 @perm_to_view_required
 def index():
     bugs = db.session.execute(db.select(Bug).filter_by(project_id=g.project.id).order_by(Bug.created_at.desc())).scalars().all()
-    priority = {'high': 0, 'medium': 1, 'low': 2}
-    bugs.sort(key=lambda b: (int(b.is_closed), priority.get(b.priority, 3)))
-    open_bugs = [bug for bug in bugs if not bug.is_closed]
-    high_open_bugs = sum(1 for bug in open_bugs if bug.priority == 'high')
-    medium_open_bugs = sum(1 for bug in open_bugs if bug.priority == 'medium')
-    low_open_bugs = len(open_bugs) - high_open_bugs - medium_open_bugs
+    bugs.sort(key=lambda b: int(b.is_closed))
+    total_open_bugs = sum(1 for bug in bugs if not bug.is_closed)
+    high_open_bugs = sum(1 for bug in bugs if bug.priority == 'high')
+    medium_open_bugs = sum(1 for bug in bugs if bug.priority == 'medium')
+    low_open_bugs = total_open_bugs - high_open_bugs - medium_open_bugs
     data = {
-        'open_bugs': len(open_bugs),
+        'open_bugs': total_open_bugs,
         'high_open_bugs': high_open_bugs,
         'medium_open_bugs': medium_open_bugs,
         'low_open_bugs': low_open_bugs
