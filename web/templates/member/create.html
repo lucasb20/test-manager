@@ -1,16 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Add New Member to {{ g.project.name }}</h2>
-
+<h1>Add Member to {{ g.project.name }}</h1>
 <form method="post">
     <div class="mb-3">
         <label for="email" class="form-label">Email</label>
-        <input name="email" type="email" class="form-control" required>
+        <input name="email" id="email" type="email" class="form-control" required>
     </div>
     <div class="mb-3">
         <label for="role" class="form-label">Role</label>
-        <select name="role" class="form-select" required>
+        <select name="role" id="role" class="form-select" required>
             <option value="" disabled selected>Select permission</option>
             <option value="viewer">Viewer</option>
             <option value="editor">Editor</option>

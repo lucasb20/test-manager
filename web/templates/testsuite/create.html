@@ -2,10 +2,10 @@
 {% from "_formhelpers.html" import render_field %}
 
 {% block content %}
-<h2>Test Suite</h2>
+<h1>Test Suite</h1>
 <form method="post">
 	<div class="mb-3">
-		{{ render_field(form.name, class="form-control") }}
+		{{ render_field(form.title, class="form-control") }}
 	</div>
 	<div class="mb-3">
 		{{ render_field(form.description, class="form-control") }}
@@ -15,9 +15,9 @@
 	{% if testcases %}
 	<h2 class="mt-3">Associated Test Cases</h2>
 	{% for tc in testcases %}
-	<div class="form mb-3">
-		<input type="checkbox" id="testcase_{{ tc.id }}" name="testcases_ids" value="{{ tc.id }}">
-		<label for="testcase_{{ tc.id }}" class="form-label">{{ tc.code_with_prefix }} {{ tc.title }}</label>
+	<div class="form-check">
+		<input type="checkbox" id="testcase_{{ tc.id }}" name="testcases_ids" class="form-check-input" value="{{ tc.id }}">
+		<label for="testcase_{{ tc.id }}" class="form-check-label">{{ tc.code_with_prefix }} {{ tc.title }}</label>
 	</div>
 	{% endfor %}
 	{% endif %}

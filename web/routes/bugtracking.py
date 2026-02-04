@@ -8,21 +8,8 @@ bp = Blueprint('bugtracking', __name__, url_prefix='/bugtracking')
 @bp.route('/')
 @perm_to_view_required
 def index():
-    bugs = db.session.execute(db.select(Bug).filter_by(project_id=g.project.id).order_by(Bug.created_at.desc())).scalars().all()
-    priority = {'high': 0, 'medium': 1, 'low': 2}
-    status = {'open': 0, 'progress': 0, 'closed': 1}
-    bugs.sort(key=lambda b: ((status.get(b.status, 3)), priority.get(b.priority, 3)))
-    open_bugs = [bug for bug in bugs if bug.status != 'closed']
-    high_open_bugs = sum(1 for bug in open_bugs if bug.priority == 'high')
-    medium_open_bugs = sum(1 for bug in open_bugs if bug.priority == 'medium')
-    low_open_bugs = len(open_bugs) - high_open_bugs - medium_open_bugs
-    data = {
-        'open_bugs': len(open_bugs),
-        'high_open_bugs': high_open_bugs,
-        'medium_open_bugs': medium_open_bugs,
-        'low_open_bugs': low_open_bugs
-    }
-    return render_template('bugtracking/index.html', bugs=bugs, data=data)
+    bugs = db.session.execute(db.select(Bug).filter_by(project_id=g.project.id).order_by(Bug.is_closed.asc())).scalars().all()
+    return render_template('bugtracking/index.html', bugs=bugs)
 
 @bp.route('/create', methods=['GET', 'POST'])
 @perm_to_edit_required
@@ -33,7 +20,7 @@ def create():
         bug = Bug(
             title=form.title.data,
             description=form.description.data,
-            status=form.status.data,
+            is_closed=form.is_closed.data,
             priority=form.priority.data,
             reported_by=g.user.id,
             project_id=g.project.id
@@ -65,7 +52,7 @@ def edit(bug_id):
     if request.method == 'POST' and form.validate():
         bug.title = form.title.data
         bug.description = form.description.data
-        bug.status = form.status.data
+        bug.is_closed = form.is_closed.data
         bug.priority = form.priority.data
         db.session.flush()
         tcs_ids = request.form.getlist('testcases_ids')

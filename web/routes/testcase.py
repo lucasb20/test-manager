@@ -52,14 +52,8 @@ def create():
             db.session.add(RequirementTestCase(requirement_id=req_id, test_case_id=testcase.id))
         db.session.commit()
         return redirect(url_for('testcase.detail', testcase_id=testcase.id))
-    tcs_data = db.session.execute(db.select(TestCase.title, TestCase.preconditions, TestCase.expected_result).filter_by(project_id=g.project.id)).all()
-    suggestions = {
-        'titles': {td[0] for td in tcs_data},
-        'preconditions': {td[1] for td in tcs_data},
-        'expected_results': {td[2] for td in tcs_data}
-    }
     requirements = db.session.execute(db.select(Requirement).filter_by(project_id=g.project.id).order_by(Requirement.order.asc())).scalars().all()
-    return render_template('testcase/create.html', form=form, requirements=requirements, suggestions=suggestions)
+    return render_template('testcase/create.html', form=form, requirements=requirements)
 
 @bp.route('/<int:testcase_id>/edit', methods=['GET', 'POST'])
 @perm_to_edit_required
@@ -91,8 +85,8 @@ def delete(testcase_id):
     db.session.delete(testcase)
     db.session.flush()
     testcases = db.session.execute(db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())).scalars().all()
-    for index, tc in enumerate(testcases):
-        tc.order = index + 1
+    for idx, tc in enumerate(testcases):
+        tc.order = idx + 1
     db.session.commit()
     return redirect(url_for('testcase.index'))
 

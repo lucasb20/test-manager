@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Test Run Summary</h2>
+<h1>Test Run Summary</h1>
 <div class="mb-3">
-	<a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Back to Previous Runs</a>
+	<a href="{{ url_for('testrun.index') }}" class="btn btn-secondary">Back to List</a>
 	<a href="{{ url_for('testrun.export', testrun_id=testrun.id) }}" class="btn btn-info">Export CSV</a>
 </div>
 <p><strong>Total Tests:</strong> {{ data.total_tests }}</p>
@@ -12,8 +12,8 @@
 <p><strong>Skipped Tests:</strong> {{ data.skipped_tests }}</p>
 <p><strong>Total Duration:</strong> {{ data.total_duration }}s ({{ data.total_duration_min}} min)</p>
 <p><strong>Percent Passed:</strong> {{ data.percent_passed }}%</p>
-<table class="table">
-	<thead class="table-dark mt-3">
+<table class="table mt-3">
+	<thead class="table-dark">
 		<tr>
 			<th>Test Case ID</th>
 			<th>Result</th>
@@ -21,8 +21,8 @@
 			<th>Executed At</th>
 			<th>Duration</th>
 			<th>Notes</th>
+			<th>Associated Bugs</th>
 			<th>Actions</th>
-			<th>Open Bugs</th>
 		</tr>
 	</thead>
 	{% for testresult in testresults %}
@@ -36,15 +36,12 @@
 		<td>{{ testresult.duration }}s</td>
 		<td>{{ testresult.notes }}</td>
 		<td>
-			<div class="d-flex gap-1">
-				<a href="{{ url_for('testrun.run_case', testrun_id=testrun.id, testresult_id=testresult.id) }}" class="btn btn-secondary btn-sm">Edit</a>
-				<a href="{{ url_for('testrun.report_bug', testresult_id=testresult.id) }}" class="btn btn-info btn-sm">Report Bug</a>
-			</div>
+			{% for btc in testresult.test_case.bugs_associations %}
+			<a href="{{ url_for('bugtracking.detail', bug_id=btc.bug_id) }}" title="{{ btc.bug.title }}">{{ btc.bug.code_with_prefix }}</a>
+			{% endfor %}
 		</td>
 		<td>
-			{% for bug in testresult.test_case.open_bugs %}
-			<a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}" title="{{ bug.title }}">{{ bug.code_with_prefix }}</a>
-			{% endfor %}
+			<a href="{{ url_for('testrun.edit', testrun_id=testrun.id, testresult_id=testresult.id) }}" class="btn btn-secondary btn-sm">Edit</a>
 		</td>
 	</tr>
 	{% endfor %}

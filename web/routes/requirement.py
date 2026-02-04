@@ -38,9 +38,8 @@ def create():
             db.session.add(RequirementTestCase(requirement_id=requirement.id, test_case_id=tc_id))
         db.session.commit()
         return redirect(url_for('requirement.detail', requirement_id=requirement.id))
-    titles = db.session.execute(db.select(Requirement.title).filter_by(project_id=g.project.id)).scalars().all()
     testcases = db.session.execute(db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())).scalars().all()
-    return render_template('requirement/create.html', form=form, titles=titles, testcases=testcases)
+    return render_template('requirement/create.html', form=form, testcases=testcases)
 
 @bp.route('/<int:requirement_id>/edit', methods=['GET', 'POST'])
 @perm_to_edit_required
@@ -72,8 +71,8 @@ def delete(requirement_id):
     db.session.delete(requirement)
     db.session.commit()
     requirements = db.session.execute(db.select(Requirement).filter_by(project_id=g.project.id).order_by(Requirement.order.asc())).scalars().all()
-    for index, req in enumerate(requirements):
-        req.order = index + 1
+    for idx, req in enumerate(requirements):
+        req.order = idx + 1
     db.session.commit()
     return redirect(url_for('requirement.index'))
 

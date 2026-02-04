@@ -1,4 +1,4 @@
-from wtforms import Form, StringField, EmailField, PasswordField, TextAreaField, SelectField, IntegerField, validators
+from wtforms import Form, StringField, EmailField, PasswordField, TextAreaField, SelectField, validators
 
 class UserForm(Form):
     name = StringField('Name', [validators.DataRequired(), validators.Length(min=4, max=25)])
@@ -36,7 +36,7 @@ class TestCaseForm(Form):
     expected_result = StringField('Expected Result', [validators.Length(max=200)])
 
 class TestSuiteForm(Form):
-    name = StringField('Name', [validators.InputRequired(), validators.Length(min=1, max=200)])
+    title = StringField('Title', [validators.InputRequired(), validators.Length(min=1, max=200)])
     description = TextAreaField('Description', [validators.Length(max=500)])
 
 class TestResultForm(Form):
@@ -51,4 +51,4 @@ class BugForm(Form):
     title = StringField('Title', [validators.InputRequired(), validators.Length(max=80)])
     description = TextAreaField('Description', [validators.Length(max=200)])
     priority = SelectField('Priority', choices=[('high', 'High'), ('medium', 'Medium'), ('low', 'Low')])
-    status = SelectField('Status', choices=[('open', 'Open'), ('progress', 'Progress'), ('closed', 'Closed')])
+    is_closed = SelectField('Status', choices=[('0', 'Open'), ('1', 'Closed')], coerce=int)

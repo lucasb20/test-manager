@@ -1,50 +1,50 @@
 from datetime import datetime
 from flask import Blueprint, request, render_template, redirect, url_for, g, flash, Response
 from decorators import perm_to_view_required, perm_to_edit_required
-from forms import BugForm, TestResultForm
-from db import db, TestCase, TestSuite, TestSuiteCase, TestRun, TestResult, Bug, BugTestCase
+from forms import TestResultForm
+from db import db, TestCase, TestSuite, TestSuiteCase, TestRun, TestResult
 from utils import create_csv, format_datetime
 
 bp = Blueprint('testrun', __name__, url_prefix='/testrun')
 
-@bp.route('/<int:testsuite_id>/create', methods=['GET'])
-@perm_to_edit_required
-def create(testsuite_id):
-    tscs = db.session.execute(db.select(TestSuiteCase).filter_by(test_suite_id=testsuite_id).order_by(TestSuiteCase.order.asc())).scalars().all()
-    if len(tscs) == 0:
-        flash('No test cases in the test suite. Please add test cases before creating a test run.')
-        return redirect(url_for('testsuite.detail', testsuite_id=testsuite_id))
-    testrun = TestRun(test_suite_id=testsuite_id)
-    db.session.add(testrun)
-    db.session.flush()
-    for tsc in tscs:
-        testresult = TestResult(
-            test_run_id=testrun.id,
-            test_case_id=tsc.test_case_id
-        )
-        db.session.add(testresult)
-    db.session.commit()
-    return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
-
-@bp.route('/<int:testsuite_id>/previous', methods=['GET'])
+@bp.route('/', methods=['GET'])
 @perm_to_view_required
-def previous(testsuite_id):
-    testruns = db.session.execute(db.select(TestRun).filter_by(test_suite_id=testsuite_id).order_by(TestRun.created_at.desc())).scalars().all()
-    ts_name = db.session.execute(db.select(TestSuite.name).filter_by(id=testsuite_id)).scalar()
-    return render_template('testrun/previous.html', testruns=testruns, ts_name=ts_name)
+def index():
+    testruns = db.session.execute(db.select(TestRun).filter_by(project_id=g.project.id).order_by(TestRun.created_at.desc())).scalars().all()
+    return render_template('testrun/index.html', testruns=testruns)
+
+@bp.route('/create', methods=['GET', 'POST'])
+@perm_to_edit_required
+def create():
+    if request.method == 'POST':
+        testrun = TestRun(project_id=g.project.id)
+        db.session.add(testrun)
+        db.session.flush()
+        tcs_set = set(request.form.getlist('testcases_ids'))
+        for ts_id in request.form.getlist('testsuites_ids'):
+            tcs = db.session.execute(db.select(TestSuiteCase.test_case_id).filter_by(test_suite_id=ts_id)).scalars().all()
+            tcs_set = tcs_set.union(tcs)
+        if tcs_set:
+            for tc_id in tcs_set:
+                db.session.add(TestResult(test_run_id=testrun.id, test_case_id=tc_id))
+            db.session.commit()
+            return redirect(url_for('testrun.edit', testrun_id=testrun.id))
+        flash('No test cases in the test suite. Please add test cases before creating a test run.')
+    testsuites = db.session.execute(db.select(TestSuite).filter_by(project_id=g.project.id).order_by(TestSuite.created_at.desc())).scalars().all()
+    testcases = db.session.execute(db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())).scalars().all()
+    return render_template('testrun/create.html', testsuites=testsuites, testcases=testcases)
 
 @bp.route('/<int:testrun_id>/delete', methods=['POST'])
 @perm_to_edit_required
 def delete(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
-    testsuite_id = testrun.test_suite_id
     db.session.delete(testrun)
     db.session.commit()
-    return redirect(url_for('testrun.previous', testsuite_id=testsuite_id))
+    return redirect(url_for('testrun.index'))
 
-@bp.route('/<int:testrun_id>/run_case', methods=['GET', 'POST'])
+@bp.route('/<int:testrun_id>/edit', methods=['GET', 'POST'])
 @perm_to_edit_required
-def run_case(testrun_id):
+def edit(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
     if 'testresult_id' in request.args:
         testresult = db.get_or_404(TestResult, request.args.get('testresult_id'))
@@ -61,10 +61,10 @@ def run_case(testrun_id):
         testresult.status = form.status.data
         testresult.notes = form.notes.data
         db.session.commit()
-        return redirect(url_for('testrun.run_case', testrun_id=testrun.id))
+        return redirect(url_for('testrun.edit', testrun_id=testrun.id))
     testcase = db.session.get(TestCase, testresult.test_case_id)
     testresults = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id)).scalars().all()
-    return render_template('testrun/run_case.html', form=form, testrun=testrun, testcase=testcase, testresults=testresults)
+    return render_template('testrun/edit.html', form=form, testcase=testcase, testresults=testresults, testresult_id=testresult.id)
 
 @bp.route('/<int:testrun_id>/summary', methods=['GET'])
 @perm_to_view_required
@@ -76,51 +76,27 @@ def summary(testrun_id):
     failed_tests = sum(1 for r in testresults if r.status == 'fail')
     skipped_tests = total_tests - passed_tests - failed_tests
     percent_passed = round((passed_tests / total_tests * 100), 2) if total_tests > 0 else 0
+    total_duration = db.session.execute(db.select(db.func.sum(TestResult.duration)).filter(TestResult.test_run_id == testrun.id)).scalar()
     data = {
         'total_tests': total_tests,
         'passed_tests': passed_tests,
         'failed_tests': failed_tests,
         'skipped_tests': skipped_tests,
-        'total_duration': testrun.duration,
-        'total_duration_min': testrun.duration // 60,
+        'total_duration': total_duration,
+        'total_duration_min': total_duration // 60,
         'percent_passed': percent_passed
     }
     return render_template('testrun/summary.html', testrun=testrun, testresults=testresults, data=data)
-
-@bp.route('/<int:testresult_id>/report_bug', methods=['GET', 'POST'])
-@perm_to_edit_required
-def report_bug(testresult_id):
-    form = BugForm(request.form)
-    testresult = db.get_or_404(TestResult, testresult_id)
-    if request.method == 'POST' and form.validate():
-        bug = Bug(
-            title=form.title.data,
-            description=form.description.data,
-            status=form.status.data,
-            priority=form.priority.data,
-            reported_by=g.user.id,
-            project_id=g.project.id
-        )
-        bug.order = bug.last_order + 1
-        db.session.add(bug)
-        db.session.flush()
-        db.session.add(BugTestCase(bug_id=bug.id, test_case_id=testresult.test_case_id))
-        db.session.commit()
-        return redirect(url_for('testrun.run_case', testrun_id=testresult.test_run_id))
-    form.description.data = testresult.notes
-    return render_template('bugtracking/create.html', form=form)
 
 @bp.route('/<int:testrun_id>/export', methods=['GET'])
 @perm_to_view_required
 def export(testrun_id):
     testrun = db.get_or_404(TestRun, testrun_id)
-    testresults = db.session.execute(
-        db.select(TestResult).filter_by(test_run_id=testrun.id)
-    ).scalars().all()
+    testresults = db.session.execute(db.select(TestResult).filter_by(test_run_id=testrun.id)).scalars().all()
     data = [("Test Case", "Status", "Executed By", "Executed At", "Duration", "Notes")]
     for testresult in testresults:
         data.append((
-            testresult.testcase_code,
+            testresult.test_case.code_with_prefix,
             testresult.status,
             testresult.executor,
             format_datetime(testresult.executed_at),
@@ -128,10 +104,7 @@ def export(testrun_id):
             testresult.notes
         ))
     csv_data = create_csv(data)
-    name = db.session.execute(
-        db.select(TestSuite.name).filter_by(id=testrun.test_suite_id)
-    ).scalar()
-    filename = f"testrun_{name.casefold()}.csv"
+    filename = f"testrun_{g.project.name.casefold()}.csv"
     response = Response(
         csv_data,
         mimetype="text/csv",

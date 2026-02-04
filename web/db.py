@@ -25,6 +25,7 @@ class Project(db.Model):
     requirements = db.relationship('Requirement', backref='project', lazy=True, cascade="all, delete-orphan")
     test_cases = db.relationship('TestCase', backref='project', lazy=True, cascade="all, delete-orphan")
     test_suites = db.relationship('TestSuite', backref='project', lazy=True, cascade="all, delete-orphan")
+    test_runs = db.relationship('TestRun', backref='project', lazy=True, cascade="all, delete-orphan")
     bugs = db.relationship('Bug', backref='project', lazy=True, cascade="all, delete-orphan")
 
     @property
@@ -56,7 +57,7 @@ class Requirement(db.Model):
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    testcase_associations = db.relationship('RequirementTestCase', backref='requirement', lazy=True, cascade="all, delete-orphan")
+    testcases_associations = db.relationship('RequirementTestCase', backref='requirement', lazy=True, cascade="all, delete-orphan")
 
     @property
     def code_with_prefix(self):
@@ -78,8 +79,8 @@ class TestCase(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     requirement_associations = db.relationship('RequirementTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
-    bug_associations = db.relationship('BugTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
-    testsuite_associations = db.relationship('TestSuiteCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
+    bugs_associations = db.relationship('BugTestCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
+    testsuites_associations = db.relationship('TestSuiteCase', backref='test_case', lazy=True, cascade="all, delete-orphan")
     testresults_associations = db.relationship('TestResult', backref='test_case', lazy=True, cascade="all, delete-orphan")
 
     @property
@@ -96,10 +97,6 @@ class TestCase(db.Model):
         last_tc_order = db.session.execute(db.select(TestCase.order).filter_by(project_id=self.project_id).order_by(TestCase.order.desc()).limit(1)).scalars().first()
         return last_tc_order or 0
 
-    @property
-    def open_bugs(self):
-        return db.session.execute(db.select(Bug).join(BugTestCase).filter(BugTestCase.test_case_id == self.id, Bug.status != 'closed')).scalars().all()
-
 class RequirementTestCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     requirement_id = db.Column(db.ForeignKey('requirement.id'))
@@ -107,13 +104,12 @@ class RequirementTestCase(db.Model):
 
 class TestSuite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(500), default=None)
     project_id = db.Column(db.ForeignKey('project.id'))
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    testcase_associations = db.relationship('TestSuiteCase', backref='test_suite', lazy=True, cascade="all, delete-orphan")
-    testruns = db.relationship('TestRun', backref='test_suite', lazy=True, cascade="all, delete-orphan")
+    testcases_associations = db.relationship('TestSuiteCase', backref='test_suite', lazy=True, cascade="all, delete-orphan")
 
 class TestSuiteCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -121,24 +117,11 @@ class TestSuiteCase(db.Model):
     test_case_id = db.Column(db.ForeignKey('test_case.id'))
     order = db.Column(db.Integer, default=0)
 
-    @property
-    def testcase_code(self):
-        tc_order = db.session.execute(db.select(TestCase.order).filter_by(id=self.test_case_id)).scalar()
-        return code_with_prefix("TC", tc_order)
-
-    @property
-    def testcase_title(self):
-        return db.session.execute(db.select(TestCase.title).filter_by(id=self.test_case_id)).scalar()
-
 class TestRun(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    test_suite_id = db.Column(db.ForeignKey('test_suite.id'))
+    project_id = db.Column(db.ForeignKey('project.id'))
     created_at = db.Column(db.DateTime, default=datetime.now)
     testresults = db.relationship('TestResult', backref='test_run', lazy=True, cascade="all, delete-orphan")
-
-    @property
-    def duration(self):
-        return db.session.execute(db.select(db.func.sum(TestResult.duration)).filter(TestResult.test_run_id == self.id, TestResult.executed_at != None)).scalar()
 
     @property
     def total_executed(self):
@@ -147,7 +130,7 @@ class TestRun(db.Model):
     @property
     def total_results(self):
         return db.session.execute(db.select(db.func.count()).select_from(TestResult).filter_by(test_run_id=self.id)).scalar()
-    
+
     @property
     def is_finished(self):
         trs = db.session.execute(db.select(TestResult.executed_at).filter_by(test_run_id=self.id)).scalars()
@@ -164,15 +147,6 @@ class TestResult(db.Model):
     duration = db.Column(db.Integer)
 
     @property
-    def testcase_code(self):
-        order = db.session.execute(db.select(TestCase.order).filter_by(id=self.test_case_id)).scalar()
-        return code_with_prefix("TC", order)
-
-    @property
-    def testcase_title(self):
-        return db.session.execute(db.select(TestCase.title).filter_by(id=self.test_case_id)).scalar()
-
-    @property
     def executor(self):
         return db.session.execute(db.select(User.name).filter_by(id=self.executed_by)).scalar()
 
@@ -182,7 +156,7 @@ class Bug(db.Model):
     description = db.Column(db.String(200), default=None)
     project_id = db.Column(db.ForeignKey('project.id'))
     reported_by = db.Column(db.ForeignKey('user.id'))
-    status = db.Column(ENUM('open', 'progress', 'closed'), nullable=False)
+    is_closed = db.Column(db.Boolean, nullable=False, default=False)
     priority = db.Column(ENUM('high', 'medium', 'low'), nullable=False)
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.now)
@@ -192,6 +166,10 @@ class Bug(db.Model):
     @property
     def code_with_prefix(self):
         return code_with_prefix("BUG", self.order)
+
+    @property
+    def status(self):
+        return "Closed" if self.is_closed else "Open"
 
     @property
     def last_order(self):

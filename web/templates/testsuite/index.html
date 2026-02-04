@@ -1,16 +1,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Test Suites</h2>
-
+<h1>Test Suites</h1>
 <div class="mb-3">
     <a href="{{ url_for('testsuite.create') }}" class="btn btn-primary">Create Test Suite</a>
     <a href="{{ url_for('project.select', next=url_for('testsuite.index')) }}" class="btn btn-secondary">Select Project</a>
 </div>
-
-<div class="list-group mb-3 mt-3">
+<div class="list-group">
     {% for testsuite in testsuites %}
-    <a href="{{ url_for('testsuite.detail', testsuite_id=testsuite.id) }}" class="list-group-item list-group-item-action">{{ testsuite.name }}</a>
+    <a href="{{ url_for('testsuite.detail', testsuite_id=testsuite.id) }}" class="list-group-item list-group-item-action">{{ testsuite.title }}</a>
     {% else %}
     <p>No test suites available.</p>
     {% endfor %}

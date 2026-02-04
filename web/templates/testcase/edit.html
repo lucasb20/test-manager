@@ -2,7 +2,7 @@
 {% from "_formhelpers.html" import render_field %}
 
 {% block content %}
-<h2>Test Case Edit</h2>
+<h1>Test Case Edit</h1>
 <form method="post">
     <div class="mb-3">
         {{ render_field(form.title, class="form-control") }}
@@ -21,9 +21,9 @@
 	{% if requirements %}
 	<h2 class="mt-3">Associated Requirements</h2>
 	{% for req in requirements %}
-	<div class="form mb-3">
-		<input type="checkbox" id="requirement_{{ req.id }}" name="requirements_ids" value="{{ req.id }}" {% if req.id in associated_ids %}checked{% endif %}>
-		<label for="requirement_{{ req.id }}" class="form-label">{{req.code_with_prefix}} {{ req.title }}</label>
+	<div class="form-check">
+		<input type="checkbox" id="requirement_{{ req.id }}" name="requirements_ids" class="form-check-input" value="{{ req.id }}" {% if req.id in associated_ids %}checked{% endif %}>
+		<label for="requirement_{{ req.id }}" class="form-check-label">{{req.code_with_prefix}} {{ req.title }}</label>
 	</div>
 	{% endfor %}
 	{% endif %}

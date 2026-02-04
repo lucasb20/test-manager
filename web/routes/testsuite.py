@@ -24,7 +24,7 @@ def create():
     form = TestSuiteForm(request.form)
     if request.method == 'POST' and form.validate():
         testsuite = TestSuite(
-            name=form.name.data,
+            title=form.title.data,
             description=form.description.data,
             project_id=g.project.id
         )
@@ -46,7 +46,7 @@ def edit(testsuite_id):
     testcases = db.session.execute(db.select(TestCase).filter_by(project_id=g.project.id).order_by(TestCase.order.asc())).scalars().all()
     associated_ids = db.session.execute(db.select(TestSuiteCase.test_case_id).filter_by(test_suite_id=testsuite_id)).scalars().all()
     if request.method == 'POST' and form.validate():
-        testsuite.name = form.name.data
+        testsuite.title = form.title.data
         testsuite.description = form.description.data
         db.session.flush()
         tcs_ids = request.form.getlist('testcases_ids')

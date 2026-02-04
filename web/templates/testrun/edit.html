@@ -2,19 +2,19 @@
 {% from "_formhelpers.html" import render_field %}
 
 {% block content %}
-<h2>Test Run</h2>
+<h1>Test Run</h1>
 <ul class="pagination">
 	{% for r in testresults %}
-	<li class="page-item{% if r.executed_at %} active{% endif %}">
-		<a class="page-link" href="{{ url_for('testrun.run_case', testrun_id=testrun.id, testresult_id=r.id) }}">{{ loop.index }}</a>
+	<li class="page-item{% if r.id == testresult_id %} disabled{% elif r.executed_at %} active{% endif %}">
+		<a class="page-link" href="{{ url_for('testrun.edit', testrun_id=request.view_args['testrun_id'], testresult_id=r.id) }}">{{ loop.index }}</a>
 	</li>
 	{% endfor %}
 </ul>
 <p><strong>ID</strong>: {{ testcase.code_with_prefix }}</p>
 <p>
-<strong>Open Bugs</strong>:
-{% for bug in testcase.open_bugs %}
-<a href="{{ url_for('bugtracking.detail', bug_id=bug.id) }}" title="{{ bug.title }}">{{ bug.code_with_prefix }}</a>
+<strong>Associated Bugs</strong>:
+{% for btc in testcase.bugs_associations %}
+<a href="{{ url_for('bugtracking.detail', bug_id=btc.bug_id) }}" title="{{ btc.bug.title }}">{{ btc.bug.code_with_prefix }}</a>
 {% else %}
 None.
 {% endfor %}
@@ -31,9 +31,8 @@ None.
         {{ render_field(form.notes, class="form-control") }}
 	</div>
 	<button type="submit" class="btn btn-primary">Submit</button>
-	<a href="{{ url_for('testrun.previous', testsuite_id=testrun.test_suite_id) }}" class="btn btn-secondary">Pause</a>
+	<a href="{{ url_for('testrun.index') }}" class="btn btn-secondary">Pause</a>
 </form>
-
 <script>
 	let start_time;
 	document.addEventListener('DOMContentLoaded', function() {

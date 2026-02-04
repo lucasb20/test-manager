@@ -1,18 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Test Cases</h2>
-
+<h1>Test Cases</h1>
 <div class="mb-3">
 	<a href="{{ url_for('testcase.create') }}" class="btn btn-primary">Create Test Case</a>
 	<a href="{{ url_for('project.select', next=url_for('testcase.index')) }}" class="btn btn-secondary">Select Project</a>
 	<a href="{{ url_for('testcase.reorder') }}" class="btn btn-secondary">Reorder Test Cases</a>
 	<a href="{{ url_for('testcase.export') }}" class="btn btn-info">Export CSV</a>
 </div>
-
 {% if testcases %}
 <table class="table">
-	<thead class="table-dark mt-3">
+	<thead class="table-dark">
 		<tr>
 			<th>ID</th>
 			<th>Requirements</th>

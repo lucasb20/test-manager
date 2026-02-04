@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Projects</h2>
-
-<a href="{{ url_for('project.create') }}" class="btn btn-primary">New Project</a>
-<a href="{{ url_for('project.import_project') }}" class="btn btn-secondary">Import Project</a>
-
-<div class="list-group mb-3 mt-3">
-    {% for project in projects %}
-    <a href="{{ url_for('project.detail', project_id=project.id) }}" class="list-group-item list-group-item-action">{{ project.name }}</a>
-    {% endfor %}
+<h1>Projects</h1>
+<div class="mb-3">
+	<a href="{{ url_for('project.create') }}" class="btn btn-primary">New Project</a>
+	<a href="{{ url_for('project.import_project') }}" class="btn btn-secondary">Import Project</a>
+</div>
+<div class="list-group">
+	{% for project in projects %}
+	<a href="{{ url_for('project.detail', project_id=project.id) }}" class="list-group-item list-group-item-action">{{ project.name }}</a>
+	{% endfor %}
 </div>
 {% endblock %}

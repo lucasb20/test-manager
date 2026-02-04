@@ -27,13 +27,7 @@ def select():
 @perm_to_view_required
 def detail(project_id):
     project = db.get_or_404(Project, project_id)
-    total_reqs = db.session.execute(db.select(db.func.count()).select_from(Requirement).filter_by(project_id=project.id)).scalar()
-    total_tcs = db.session.execute(db.select(db.func.count()).select_from(TestCase).filter_by(project_id=project.id)).scalar()
-    data = {
-        "total_reqs": total_reqs,
-        "total_tcs": total_tcs
-    }
-    return render_template('project/detail.html', project=project, data=data)
+    return render_template('project/detail.html', project=project)
 
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
@@ -48,8 +42,7 @@ def create():
             )
             db.session.add(project)
             db.session.flush()
-            project_member = ProjectMember(project_id=project.id, user_id=g.user.id, role="manager")
-            db.session.add(project_member)
+            db.session.add(ProjectMember(project_id=project.id, user_id=g.user.id, role="manager"))
             db.session.commit()
             return redirect(url_for('project.detail', project_id=project.id))
         except IntegrityError:
@@ -112,7 +105,7 @@ def export(project_id):
                 'title': bug.title,
                 'description': bug.description,
                 'testcases': ', '.join(bug.testcases_codes),
-                'status': bug.status,
+                'is_closed': bug.is_closed,
                 'priority': bug.priority
             } for bug in bugs
         }
@@ -143,8 +136,7 @@ def import_project():
                 )
                 db.session.add(project)
                 db.session.flush()
-                project_member = ProjectMember(project_id=project.id, user_id=g.user.id, role="manager")
-                db.session.add(project_member)
+                db.session.add(ProjectMember(project_id=project.id, user_id=g.user.id, role="manager"))
                 reqs = {}
                 order = 1
                 for code, req_data in data.get('requirements', {}).items():
@@ -188,9 +180,9 @@ def import_project():
                         project_id=project.id,
                         title=bug_data.get('title'),
                         description=bug_data.get('description'),
-                        status=bug_data.get('status'),
+                        is_closed=bug_data.get('is_closed'),
                         priority=bug_data.get('priority'),
-                        order=order,
+                        order=order
                     )
                     db.session.add(bug)
                     db.session.flush()
